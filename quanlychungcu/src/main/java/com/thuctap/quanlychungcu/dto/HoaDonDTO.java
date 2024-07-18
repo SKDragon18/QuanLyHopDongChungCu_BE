@@ -16,6 +16,6 @@ public class HoaDonDTO {
     private Timestamp thoiGianDong;
     private BigDecimal tongHoaDon;
     private HopDongDTO hopDong;
-    private ChiPhiThemDTO chiPhiThem;
+    private YeuCauDichVuDTO yeuCauDichVu;
 
 }

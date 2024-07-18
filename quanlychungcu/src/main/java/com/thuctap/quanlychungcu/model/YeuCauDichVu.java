@@ -16,24 +16,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "CHIPHITHEM")
+@Table(name = "YEUCAUDICHVU")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChiPhiThem {
+public class YeuCauDichVu {
     @Id
-    @Column(name = "IDCPTHEM",nullable = false)
+    @Column(name = "IDYEUCAUDICHVU",nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idCPThem;
+    private long idYeuCauDichVu;
 
     @ManyToOne
     @JoinColumn(name = "IDHOPDONG")
     private HopDong hopDong;
 
     @ManyToOne
-    @JoinColumn(name = "IDCPKTX")
-    private CPKTX chiPhiKTX;
+    @JoinColumn(name = "IDDICHVU")
+    private DichVu dichVu;
 
     @Column(name="GIATRA", nullable = false)
     private BigDecimal giaTra;
@@ -43,6 +43,12 @@ public class ChiPhiThem {
 
     @Column(name="THOIHAN", nullable = false)
     private Timestamp thoiHan;
+
+    @Column(name = "CHUKY", nullable = false)
+    private int chuKy;
+
+    @Column(name="TRANGTHAI", nullable = false)
+    private Boolean trangThai;
 
 
 }

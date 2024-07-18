@@ -6,10 +6,10 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.thuctap.quanlychungcu.dto.ChiPhiThemDTO;
+import com.thuctap.quanlychungcu.dto.YeuCauDichVuDTO;
 import com.thuctap.quanlychungcu.dto.HoaDonDTO;
 import com.thuctap.quanlychungcu.dto.HopDongDTO;
-import com.thuctap.quanlychungcu.model.ChiPhiThem;
+import com.thuctap.quanlychungcu.model.YeuCauDichVu;
 import com.thuctap.quanlychungcu.model.HoaDon;
 import com.thuctap.quanlychungcu.model.HopDong;
 import com.thuctap.quanlychungcu.repository.HoaDonRepository;
@@ -23,19 +23,19 @@ public class HoaDonService {
     HopDongService hopDongService;
 
     @Autowired
-    ChiPhiThemService chiPhiThemService;
+    YeuCauDichVuService yeuCauDichVuService;
 
     public HoaDonDTO mapToHoaDonDTO(HoaDon hoaDon){
         if(hoaDon==null)return null;
         HopDongDTO hopDongDTO = hopDongService.mapToHopDongDTO(hoaDon.getHopDong());;
-        ChiPhiThemDTO chiPhiThemDTO = chiPhiThemService.mapToChiPhiThemDTO(hoaDon.getChiPhiThem());
+        YeuCauDichVuDTO yeuCauDichVuDTO = yeuCauDichVuService.mapToYeuCauDichVuDTO(hoaDon.getYeuCauDichVu());
 
         return HoaDonDTO.builder()
             .soHoaDon(hoaDon.getSoHoaDon())
             .thoiGianDong(hoaDon.getThoiGianDong())
             .tongHoaDon(hoaDon.getTongHoaDon())
             .hopDong(hopDongDTO)
-            .chiPhiThem(chiPhiThemDTO)
+            .yeuCauDichVu(yeuCauDichVuDTO)
             .build();
     }
 
@@ -47,9 +47,9 @@ public class HoaDonService {
             hopDong = hopDongService.findById(hoaDonDTO.getHopDong().getIdHopDong());
         }
         
-        ChiPhiThem chiPhiThem = null;
-        if(hoaDonDTO.getChiPhiThem()!=null){
-            chiPhiThem = chiPhiThemService.findById(hoaDonDTO.getChiPhiThem().getIdCPThem());
+        YeuCauDichVu yeuCauDichVu = null;
+        if(hoaDonDTO.getYeuCauDichVu()!=null){
+            yeuCauDichVu = yeuCauDichVuService.findById(hoaDonDTO.getYeuCauDichVu().getIdYeuCauDichVu());
         }
         
         return HoaDon.builder()
@@ -57,7 +57,7 @@ public class HoaDonService {
             .thoiGianDong(hoaDonDTO.getThoiGianDong())
             .tongHoaDon(hoaDonDTO.getTongHoaDon())
             .hopDong(hopDong)
-            .chiPhiThem(chiPhiThem)
+            .yeuCauDichVu(yeuCauDichVu)
             .build();
     }
 

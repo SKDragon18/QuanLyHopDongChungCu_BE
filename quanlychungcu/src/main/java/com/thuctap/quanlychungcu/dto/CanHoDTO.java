@@ -13,12 +13,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CanHoDTO {
     private int idCanHo;
-    private int soPhong;
+    private String soPhong;
     private int tang;
+    private String lo;
     private LoaiPhongDTO loaiPhong;
     private float dienTich;
     private String tienNghi;
     private String moTa;
     private BigDecimal giaThue;
+    private Boolean trangThai;
+    private int chuKy;
+    private List<DieuKhoanDTO> dieuKhoanList;
     private List<byte[]> hinhAnhList;
+    
 }

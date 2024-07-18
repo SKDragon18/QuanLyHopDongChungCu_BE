@@ -38,7 +38,7 @@ public class HoaDon {
     private HopDong hopDong;
 
     @ManyToOne
-    @JoinColumn(name = "IDCPTHEM", nullable = true)
-    private ChiPhiThem chiPhiThem;
+    @JoinColumn(name = "IDYEUCAUDICHVU", nullable = true)
+    private YeuCauDichVu yeuCauDichVu;
 
 }

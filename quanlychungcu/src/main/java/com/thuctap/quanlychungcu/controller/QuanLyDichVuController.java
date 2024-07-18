@@ -49,16 +49,18 @@ public class QuanLyDichVuController {
     public ResponseEntity<?> insertDichVu(@RequestBody DichVuDTO dichVuDTO) {
         DichVu dichVu = dichVuService.mapToDichVu(dichVuDTO);
         try{
+            dichVu.setTrangThai(false);
             dichVu = dichVuService.save(dichVu);
             if(dichVuService.isExistsById(dichVu.getIdDichVu())){
                 DichVuDTO dichVuDTO2 = dichVuService.mapToDichVuDTO(dichVu);
                 return new ResponseEntity<>(dichVuDTO2,HttpStatus.OK);
             }
             else{
-                return new ResponseEntity<>("data",HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Thêm thất bại",HttpStatus.BAD_REQUEST);
             }
         }
         catch(Exception e){
+            System.out.println(e.getMessage());
             return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
@@ -70,7 +72,11 @@ public class QuanLyDichVuController {
         }
         try{
             DichVu dichVu = dichVuService.mapToDichVu(dichVuDTO);
-            dichVu = dichVuService.save(dichVu);
+            dichVu=dichVuService.save(dichVu);
+            if(!dichVuService.updateDieuKhoan(dichVuDTO, dichVu)){
+                return new ResponseEntity<>("Lỗi update điều khoản",HttpStatus.BAD_REQUEST);
+            }
+            dichVu=dichVuService.findById(dichVuDTO.getIdDichVu());
             DichVuDTO dichVuDTO2 = dichVuService.mapToDichVuDTO(dichVu);
             return new ResponseEntity<>(dichVuDTO2, HttpStatus.OK);
         }
@@ -79,6 +85,22 @@ public class QuanLyDichVuController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> changePublicDichVu(@PathVariable int id) {
+        if (!dichVuService.isExistsById(id)) {
+            return new ResponseEntity<>("Dịch vụ không tồn tại", HttpStatus.BAD_REQUEST);
+        }
+        try{
+            DichVu dichVu = dichVuService.findById(id);
+            dichVu.setTrangThai(!dichVu.getTrangThai());
+            dichVu = dichVuService.save(dichVu);
+            DichVuDTO dichVuDTO2 = dichVuService.mapToDichVuDTO(dichVu);
+            return new ResponseEntity<>(dichVuDTO2, HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDichVu(@PathVariable int id) {

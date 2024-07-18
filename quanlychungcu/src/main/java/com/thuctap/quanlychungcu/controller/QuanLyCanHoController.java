@@ -63,6 +63,7 @@ public class QuanLyCanHoController {
     @PostMapping
     public ResponseEntity<?> insertCanHo(@RequestBody CanHoDTO canHoDTO) {
         CanHo canHo = canHoService.mapToCanHo(canHoDTO);
+        canHo.setTrangThai(false);
         try{
             canHo = canHoService.save(canHo);
             if(canHoService.isExistsById(canHo.getIdCanHo())){
@@ -121,7 +122,30 @@ public class QuanLyCanHoController {
             return new ResponseEntity<>("Căn hộ không tồn tại", HttpStatus.BAD_REQUEST);
         }
         try{
+            
             CanHo canHo = canHoService.mapToCanHo(canHoDTO);
+            canHo=canHoService.save(canHo);
+            if(!canHoService.updateDieuKhoan(canHoDTO, canHo)){
+                return new ResponseEntity<>("Lỗi update điều khoản",HttpStatus.BAD_REQUEST);
+            }
+            canHo=canHoService.findById(canHoDTO.getIdCanHo());
+            CanHoDTO canHoDTO2 = canHoService.mapToCanHoDTO(canHo,false);
+            return new ResponseEntity<>(canHoDTO2, HttpStatus.OK);
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> changePublicCanHo(@PathVariable int id) {
+        if (!canHoService.isExistsById(id)) {
+            return new ResponseEntity<>("Căn hộ không tồn tại", HttpStatus.BAD_REQUEST);
+        }
+        try{
+            CanHo canHo = canHoService.findById(id);
+            canHo.setTrangThai(!canHo.getTrangThai());
             canHo = canHoService.save(canHo);
             CanHoDTO canHoDTO2 = canHoService.mapToCanHoDTO(canHo,false);
             return new ResponseEntity<>(canHoDTO2, HttpStatus.OK);

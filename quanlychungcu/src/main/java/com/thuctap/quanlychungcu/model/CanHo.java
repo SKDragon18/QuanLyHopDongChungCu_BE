@@ -28,11 +28,14 @@ public class CanHo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idCanHo;
 
-    @Column(name="SOPHONG",nullable = false)
-    private int soPhong;
+    @Column(name="SOPHONG",nullable = false, length = 3)
+    private String soPhong;
 
     @Column(name="TANG",nullable = false)
     private int tang;
+
+    @Column(name = "LO", nullable = false)
+    private String lo;
 
     @ManyToOne
     @JoinColumn(name = "IDLOAIPHONG")
@@ -50,6 +53,15 @@ public class CanHo {
     @Column(name="GIATHUE",nullable = false)
     private BigDecimal giaThue;
 
+    @Column(name = "TRANGTHAI", nullable = false)
+    private Boolean trangThai;
+
+    @Column(name = "CHUKY", nullable = false)
+    private int chuKy;
+
     @OneToMany(mappedBy = "canHo")
     List<HinhAnh> hinhAnhList;
+
+    @OneToMany(mappedBy = "canHo")
+    List<CTDKCanHo> chiTietDieuKhoanCanHoList;
 }

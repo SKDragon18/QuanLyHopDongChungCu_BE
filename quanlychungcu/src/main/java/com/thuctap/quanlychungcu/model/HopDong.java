@@ -40,12 +40,11 @@ public class HopDong {
     @JoinColumn(name = "IDCANHO",nullable = true)
     private CanHo canHo;
 
-    @ManyToOne
-    @JoinColumn(name = "IDDICHVU",nullable = true)
-    private DichVu dichVu;
-
     @Column(name="GIATRI",nullable = false)
     private BigDecimal giaTri;
+
+    @Column(name="NGAYBATDAU", nullable = false)
+    private Timestamp ngayBatDau;
 
     @Column(name="THOIHAN", nullable = false)
     private Timestamp thoiHan;
@@ -53,6 +52,9 @@ public class HopDong {
     @Column(name="CHUKY", nullable = false)
     private int chuKy;
 
+    @Column(name="TRANGTHAI", nullable = false)
+    private Boolean trangThai;
+
     @OneToMany(mappedBy = "hopDong")
-    List<CTDK> chiTietDieuKhoanList;
+    List<CTHopDong> chiTietHopDongList;
 }

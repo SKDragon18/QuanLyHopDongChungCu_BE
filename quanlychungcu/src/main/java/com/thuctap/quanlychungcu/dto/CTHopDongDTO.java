@@ -1,5 +1,4 @@
 package com.thuctap.quanlychungcu.dto;
-import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CPKTXDTO {
-    private int idCPKTX;
-    private String tenDichVu;
-    private BigDecimal giaHienTai;
+public class CTHopDongDTO {
+    private long idCTHopDong;
+    private HopDongDTO hopDong;
+    private DieuKhoanDTO dieuKhoan;
 }

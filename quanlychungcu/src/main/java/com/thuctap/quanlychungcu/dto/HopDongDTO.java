@@ -17,9 +17,10 @@ public class HopDongDTO {
     private Timestamp ngayLap;
     private KhachHangDTO khachHang;
     private CanHoDTO canHo;
-    private DichVuDTO dichVu;
     private BigDecimal giaTri;
+    private Timestamp ngayBatDau;
     private Timestamp thoiHan;
     private int chuKy;
-    List<CTDKDTO> chiTietDieuKhoanList;
+    private Boolean trangThai;
+    List<CTHopDongDTO> chiTietHopDongList;
 }

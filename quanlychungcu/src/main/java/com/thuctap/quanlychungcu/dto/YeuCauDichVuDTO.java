@@ -11,11 +11,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChiPhiThemDTO {
-    private long idCPThem;
+public class YeuCauDichVuDTO {
+    private long idYeuCauDichVu;
     private HopDongDTO hopDong;
-    private CPKTXDTO chiPhiKTX;
+    private DichVuDTO dichVu;
     private BigDecimal giaTra;
     private Timestamp ngayYeuCau;
     private Timestamp thoiHan;
+    private int chuKy;
+    private Boolean trangThai;
 }

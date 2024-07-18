@@ -13,16 +13,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "CTDK")
+@Table(name = "CTHOPDONG")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CTDK {
+public class CTHopDong {
     @Id
-    @Column(name = "IDCTDK",nullable = false)
+    @Column(name = "IDCTHOPDONG",nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long idCTDK;
+    private long idCTHopDong;
 
     @ManyToOne
     @JoinColumn(name = "IDHOPDONG")

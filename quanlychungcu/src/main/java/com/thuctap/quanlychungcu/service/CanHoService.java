@@ -9,11 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.thuctap.quanlychungcu.dto.CanHoDTO;
+import com.thuctap.quanlychungcu.dto.DieuKhoanDTO;
 import com.thuctap.quanlychungcu.dto.LoaiPhongDTO;
+import com.thuctap.quanlychungcu.model.CTDKCanHo;
 import com.thuctap.quanlychungcu.model.CanHo;
+import com.thuctap.quanlychungcu.model.DieuKhoan;
 import com.thuctap.quanlychungcu.model.HinhAnh;
 import com.thuctap.quanlychungcu.model.LoaiPhong;
 import com.thuctap.quanlychungcu.repository.CanHoRepository;
+
+import jakarta.transaction.Transactional;
 @Service
 public class CanHoService {
 
@@ -26,19 +31,37 @@ public class CanHoService {
     @Autowired
     HinhAnhService hinhAnhService;
 
+    @Autowired
+    DieuKhoanService dieuKhoanService;
+
     public CanHoDTO mapToCanHoDTO(CanHo canHo, Boolean hasImage){
         if(canHo==null)return null;
         
         LoaiPhongDTO loaiPhongDTO = loaiPhongService.mapToLoaiPhongDTO(canHo.getLoaiPhong());
+        List<DieuKhoanDTO> dieuKhoanDTOList = new ArrayList<>();
+        List<CTDKCanHo> chiTietDieuKhoanCanHoList = canHo.getChiTietDieuKhoanCanHoList();
+        if(chiTietDieuKhoanCanHoList!=null&&chiTietDieuKhoanCanHoList.size()>0){
+            for(CTDKCanHo x: chiTietDieuKhoanCanHoList){
+                DieuKhoanDTO dieuKhoanDTO = DieuKhoanDTO.builder()
+                .ma(x.getDieuKhoan().getMa())
+                .noiDung(x.getDieuKhoan().getNoiDung())
+                .build();
+                dieuKhoanDTOList.add(dieuKhoanDTO);
+            }
+        }
         CanHoDTO canHoDTO = CanHoDTO.builder()
             .idCanHo(canHo.getIdCanHo())
             .soPhong(canHo.getSoPhong())
+            .lo(canHo.getLo())
             .tang(canHo.getTang())
             .loaiPhong(loaiPhongDTO)
             .dienTich(canHo.getDienTich())
             .tienNghi(canHo.getTienNghi())
             .moTa(canHo.getMoTa())
             .giaThue(canHo.getGiaThue())
+            .trangThai(canHo.getTrangThai())
+            .chuKy(canHo.getChuKy())
+            .dieuKhoanList(dieuKhoanDTOList)
             .build();
         if(hasImage){
             try{
@@ -69,11 +92,14 @@ public class CanHoService {
             .idCanHo(canHoDTO.getIdCanHo())
             .soPhong(canHoDTO.getSoPhong())
             .tang(canHoDTO.getTang())
+            .lo(canHoDTO.getLo())
             .loaiPhong(loaiPhong)
             .dienTich(canHoDTO.getDienTich())
             .tienNghi(canHoDTO.getTienNghi())
             .moTa(canHoDTO.getMoTa())
             .giaThue(canHoDTO.getGiaThue())
+            .trangThai(canHoDTO.getTrangThai())
+            .chuKy(canHoDTO.getChuKy())
             .build();
     }
 
@@ -100,5 +126,53 @@ public class CanHoService {
 
     public void deleteById(int id){
         canHoRepository.deleteById(id);;
+    }
+
+    @Transactional
+    public Boolean updateDieuKhoan(CanHoDTO canHoDTO, CanHo canHo){
+        if(canHoDTO.getDieuKhoanList()==null)return true;
+        try{
+            //Chuyển đổi danh sách điều khoản mới
+            List<DieuKhoanDTO> dieuKhoanDTOList= canHoDTO.getDieuKhoanList();
+            List<DieuKhoan> dieuKhoanList = dieuKhoanDTOList.stream()
+            .map(dieuKhoan -> dieuKhoanService.mapToDieuKhoan(dieuKhoan)).toList();
+
+            //Lấy lại danh sách điều khoản đã tồn tại
+            List<CTDKCanHo> chiTietDieuKhoanCanHoList = dieuKhoanService.findCTDKCanHoByCanHo(canHo);
+            List<DieuKhoan> dieuKhoanList2= new ArrayList<>();
+            if(chiTietDieuKhoanCanHoList!=null&&chiTietDieuKhoanCanHoList.size()>0){
+                //Lọc và xóa danh sách cũ nếu không có trong danh sách mới
+                for(CTDKCanHo x: chiTietDieuKhoanCanHoList){
+                    if(!dieuKhoanList.contains(x.getDieuKhoan())){
+                        dieuKhoanService.deleteCTDKCanHoById(x.getIdCTDKCanHo());
+                    }
+                    else{
+                        dieuKhoanList2.add(x.getDieuKhoan());
+                        
+                    }
+                }
+            }
+            //Thêm danh sách mới nếu chưa có, nếu mã New thì tạo thêm
+            for(DieuKhoan x: dieuKhoanList){
+                if(!dieuKhoanList2.contains(x)){
+                    DieuKhoan y = x;
+                    if(y.getMa().contains("New")){
+                        y = dieuKhoanService.save(y);
+                        
+                    }
+                    CTDKCanHo chiTietDieuKhoanCanHo = CTDKCanHo.builder()
+                    .canHo(canHo)
+                    .dieuKhoan(y)
+                    .build();
+                    dieuKhoanService.saveCTDKCanHo(chiTietDieuKhoanCanHo);
+                    
+                }
+            }
+            return true;
+        }
+        catch(Exception e){
+            System.out.println("Error: "+e.getMessage());
+            return false;
+        }
     }
 }
