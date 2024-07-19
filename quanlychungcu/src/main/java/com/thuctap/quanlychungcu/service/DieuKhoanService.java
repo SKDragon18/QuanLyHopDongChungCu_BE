@@ -61,22 +61,22 @@ public class DieuKhoanService {
         return chiTietDieuKhoanDichVuRepository.findAll();
     }
 
-    public List<CTDKCanHo> findCTDKCanHoByCanHo(CanHo canHo){
+    public List<CTDKCanHo> findCTDKCanHoById(long idCanHo){
         List<CTDKCanHo> chiTietDieuKhoanCanHoList = findAllCTDKCanHo();
         List<CTDKCanHo> resultList = new ArrayList<>();
         for(CTDKCanHo x: chiTietDieuKhoanCanHoList){
-            if(x.getCanHo().getIdCanHo()==canHo.getIdCanHo()){
+            if(x.getCanHo().getIdCanHo()==idCanHo){
                 resultList.add(x);
             }
         }
         return resultList;
     }
 
-    public List<CTDKDichVu> findCTDKDichVuByDichVu(DichVu dichVu){
+    public List<CTDKDichVu> findCTDKDichVuById(long idDichVu){
         List<CTDKDichVu> chiTietDieuKhoanDichVuList = findAllCTDKDichVu();
         List<CTDKDichVu> resultList = new ArrayList<>();
         for(CTDKDichVu x: chiTietDieuKhoanDichVuList){
-            if(x.getDichVu().getIdDichVu()==dichVu.getIdDichVu()){
+            if(x.getDichVu().getIdDichVu()==idDichVu){
                 resultList.add(x);
             }
         }

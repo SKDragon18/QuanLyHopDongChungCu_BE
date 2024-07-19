@@ -31,10 +31,10 @@ public class BangGia {
     @Column(name="NOIDUNG",nullable = true)
     private String noiDung;
 
-    @Column(name="THOIGIANBATDAU",nullable=false)
+    @Column(name="THOIGIANBATDAU",nullable=true)
     private Timestamp thoiGianBatDau;
 
-    @Column(name="THOIGIANKETTHUC",nullable=false)
+    @Column(name="THOIGIANKETTHUC",nullable=true)
     private Timestamp thoiGianKetThuc;
 
     @Column(name="APDUNG",nullable = false)

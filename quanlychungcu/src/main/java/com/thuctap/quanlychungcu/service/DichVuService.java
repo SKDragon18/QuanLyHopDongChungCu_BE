@@ -98,7 +98,7 @@ public class DichVuService {
             .map(dieuKhoan -> dieuKhoanService.mapToDieuKhoan(dieuKhoan)).toList();
 
             //Lấy lại danh sách điều khoản đã tồn tại
-            List<CTDKDichVu> chiTietDieuKhoanDichVuList = dieuKhoanService.findCTDKDichVuByDichVu(dichVu);
+            List<CTDKDichVu> chiTietDieuKhoanDichVuList = dieuKhoanService.findCTDKDichVuById(dichVu.getIdDichVu());
             List<DieuKhoan> dieuKhoanList2= new ArrayList<>();
             if(chiTietDieuKhoanDichVuList!=null&&chiTietDieuKhoanDichVuList.size()>0){
                 //Lọc và xóa danh sách cũ nếu không có trong danh sách mới

@@ -1,6 +1,8 @@
 package com.thuctap.quanlychungcu.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +10,20 @@ import org.springframework.stereotype.Service;
 
 import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
 import com.thuctap.quanlychungcu.dto.BangGiaDTO;
+import com.thuctap.quanlychungcu.dto.CanHoBangGiaDTO;
+import com.thuctap.quanlychungcu.dto.CanHoDTO;
+import com.thuctap.quanlychungcu.dto.DichVuBangGiaDTO;
 import com.thuctap.quanlychungcu.model.BanQuanLy;
 import com.thuctap.quanlychungcu.model.BangGia;
+import com.thuctap.quanlychungcu.model.CanHo;
+import com.thuctap.quanlychungcu.model.DichVu;
+import com.thuctap.quanlychungcu.model.GiaCanHo;
+import com.thuctap.quanlychungcu.model.GiaCanHoPK;
+import com.thuctap.quanlychungcu.model.GiaDichVu;
+import com.thuctap.quanlychungcu.model.GiaDichVuPK;
 import com.thuctap.quanlychungcu.repository.BangGiaRepository;
+import com.thuctap.quanlychungcu.repository.GiaCanHoRepository;
+import com.thuctap.quanlychungcu.repository.GiaDichVuRepository;
 @Service
 public class BangGiaService {
 
@@ -19,6 +32,12 @@ public class BangGiaService {
 
     @Autowired
     BanQuanLyService banQuanLyService;
+
+    @Autowired
+    GiaCanHoRepository giaCanHoRepository;
+
+    @Autowired
+    GiaDichVuRepository giaDichVuRepository;
 
     public BangGiaDTO mapToBangGiaDTO(BangGia bangGia){
         if(bangGia==null)return null;
@@ -37,7 +56,10 @@ public class BangGiaService {
 
     public BangGia mapToBangGia(BangGiaDTO bangGiaDTO){
         if(bangGiaDTO==null)return null;
-        BanQuanLy banQuanLy = banQuanLyService.findById(bangGiaDTO.getBanQuanLy().getMa());
+        BanQuanLy banQuanLy = null;
+        if(bangGiaDTO.getBanQuanLy()!=null){
+            banQuanLy=banQuanLyService.findById(bangGiaDTO.getBanQuanLy().getMa());
+        }
         return BangGia.builder()
             .idBangGia(bangGiaDTO.getIdBangGia())
             .noiDung(bangGiaDTO.getNoiDung())
@@ -61,6 +83,46 @@ public class BangGiaService {
         return bangGia;
     }
 
+    public List<CanHoBangGiaDTO> findCanHoListById(long id){
+        List<GiaCanHo> giaCanHoList = giaCanHoRepository.findAll();
+        List<CanHoBangGiaDTO> result = new ArrayList<>();
+        if(giaCanHoList!=null){
+            for(GiaCanHo x: giaCanHoList){
+                if(x.getBangGia().getIdBangGia()==id){
+                    CanHo canHo = x.getCanHo();
+                    CanHoBangGiaDTO canHoBangGiaDTO = new CanHoBangGiaDTO();
+                    canHoBangGiaDTO.setIdCanHo(canHo.getIdCanHo());
+                    canHoBangGiaDTO.setSoPhong(canHo.getSoPhong());
+                    canHoBangGiaDTO.setLo(canHo.getLo());
+                    canHoBangGiaDTO.setTang(canHo.getTang());
+                    canHoBangGiaDTO.setGiaGoc(canHo.getGiaThue());
+                    canHoBangGiaDTO.setGiaKhuyenMai(x.getGia());
+                    result.add(canHoBangGiaDTO);
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<DichVuBangGiaDTO> findDichVuListById(long id){
+        List<GiaDichVu> giaDichVuList = giaDichVuRepository.findAll();
+        List<DichVuBangGiaDTO> result = new ArrayList<>();
+        if(giaDichVuList!=null){
+            for(GiaDichVu x: giaDichVuList){
+                if(x.getBangGia().getIdBangGia()==id){
+                    DichVu dichVu = x.getDichVu();
+                    DichVuBangGiaDTO dichVuBangGiaDTO = new DichVuBangGiaDTO();
+                    dichVuBangGiaDTO.setIdDichVu(dichVu.getIdDichVu());
+                    dichVuBangGiaDTO.setTenDichVu(dichVu.getTenDichVu());
+                    dichVuBangGiaDTO.setGiaGoc(dichVu.getGiaHienTai());
+                    dichVuBangGiaDTO.setGiaKhuyenMai(x.getGia());
+                    result.add(dichVuBangGiaDTO);
+                }
+            }
+        }
+        return result;
+    }
+
     public boolean isExistsById(long id){
         return bangGiaRepository.existsById(id);
     }
@@ -69,7 +131,32 @@ public class BangGiaService {
         return bangGiaRepository.save(bangGia);
     }
 
+    public GiaCanHo saveGiaCanHo(GiaCanHo giaCanHo){
+        return giaCanHoRepository.save(giaCanHo);
+    }
+
+    public GiaDichVu saveGiaDichVu(GiaDichVu giaDichVu){
+        return giaDichVuRepository.save(giaDichVu);
+    }
+
     public void deleteById(long id){
         bangGiaRepository.deleteById(id);;
+    }
+
+    public void deleteGiaCanHoById(GiaCanHoPK giaCanHoPK){
+        giaCanHoRepository.deleteById(giaCanHoPK);
+    }
+
+    public void deleteGiaDichVuById(GiaDichVuPK giaDichVuPK){
+        giaDichVuRepository.deleteById(giaDichVuPK);
+    }
+
+    //Hiển thị bày bán giá các sản phẩm dịch vụ/ căn hộ
+    public List<Map<?,?>> getCanHoHienThiList(){
+        return bangGiaRepository.canHoHienThiList();
+    }
+
+    public List<Map<?,?>> getDichVuHienThiList(){
+        return bangGiaRepository.dichVuHienThiList();
     }
 }

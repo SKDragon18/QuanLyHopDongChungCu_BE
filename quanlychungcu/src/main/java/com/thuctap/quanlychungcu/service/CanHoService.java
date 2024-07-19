@@ -138,7 +138,7 @@ public class CanHoService {
             .map(dieuKhoan -> dieuKhoanService.mapToDieuKhoan(dieuKhoan)).toList();
 
             //Lấy lại danh sách điều khoản đã tồn tại
-            List<CTDKCanHo> chiTietDieuKhoanCanHoList = dieuKhoanService.findCTDKCanHoByCanHo(canHo);
+            List<CTDKCanHo> chiTietDieuKhoanCanHoList = dieuKhoanService.findCTDKCanHoById(canHo.getIdCanHo());
             List<DieuKhoan> dieuKhoanList2= new ArrayList<>();
             if(chiTietDieuKhoanCanHoList!=null&&chiTietDieuKhoanCanHoList.size()>0){
                 //Lọc và xóa danh sách cũ nếu không có trong danh sách mới
