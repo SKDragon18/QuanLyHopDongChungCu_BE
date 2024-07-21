@@ -21,8 +21,8 @@ public class CanHoDTO {
     private String tienNghi;
     private String moTa;
     private BigDecimal giaThue;
-    private Boolean trangThai;
     private int chuKy;
+    private Boolean trangThai;
     private List<DieuKhoanDTO> dieuKhoanList;
     private List<byte[]> hinhAnhList;
     

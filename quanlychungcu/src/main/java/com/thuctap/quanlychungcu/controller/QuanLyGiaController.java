@@ -1,6 +1,5 @@
 package com.thuctap.quanlychungcu.controller;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,9 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.thuctap.quanlychungcu.dto.BangGiaCTDTO;
 import com.thuctap.quanlychungcu.dto.BangGiaDTO;
 import com.thuctap.quanlychungcu.dto.CanHoBangGiaDTO;
-import com.thuctap.quanlychungcu.dto.CanHoDTO;
 import com.thuctap.quanlychungcu.dto.DichVuBangGiaDTO;
-import com.thuctap.quanlychungcu.dto.DichVuDTO;
 import com.thuctap.quanlychungcu.model.BangGia;
 import com.thuctap.quanlychungcu.model.CanHo;
 import com.thuctap.quanlychungcu.model.DichVu;

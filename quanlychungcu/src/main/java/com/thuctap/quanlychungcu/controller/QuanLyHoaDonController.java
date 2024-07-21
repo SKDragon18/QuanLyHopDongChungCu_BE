@@ -1,5 +1,6 @@
 package com.thuctap.quanlychungcu.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,23 @@ public class QuanLyHoaDonController {
         HoaDonDTO hoaDonDTO = hoaDonService.mapToHoaDonDTO(hoaDon);
         return new ResponseEntity<>(hoaDonDTO,HttpStatus.OK);
     }
+
+    @GetMapping("/khachhang/{id}")
+    public ResponseEntity<List<HoaDonDTO>> getAllHoaDon(@PathVariable("id") String id){
+        List<HoaDon> hoaDonList = hoaDonService.findAll();
+        List<HoaDonDTO> hoaDonDTOList = new ArrayList<>();
+        for(HoaDon hoaDon:hoaDonList){
+            if(hoaDon.getHopDong()!=null&&hoaDon.getHopDong().getKhachHang().getMaKhachHang().equals(id)){
+                hoaDonDTOList.add(hoaDonService.mapToHoaDonDTO(hoaDon));
+            }
+            else if(hoaDon.getYeuCauDichVu()!=null&&hoaDon.getYeuCauDichVu()
+            .getHopDong().getKhachHang().getMaKhachHang().equals(id)){
+                hoaDonDTOList.add(hoaDonService.mapToHoaDonDTO(hoaDon));
+            }
+        }
+        return new ResponseEntity<>(hoaDonDTOList,HttpStatus.OK);
+    }
+    
 
     @PostMapping
     public ResponseEntity<?> insertHoaDon(@RequestBody HoaDonDTO hoaDonDTO) {
