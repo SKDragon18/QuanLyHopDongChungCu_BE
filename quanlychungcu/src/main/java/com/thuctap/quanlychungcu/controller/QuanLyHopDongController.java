@@ -141,7 +141,10 @@ public class QuanLyHopDongController {
         
         try{
             HopDong hopDong = hopDongService.mapToHopDong(hopDongDTO);
-            hopDong.setNgayLap(getNow());
+            // hopDong.setNgayLap(getNow());
+            // hopDong.setNgayLap(convertToUTC(hopDong.getNgayLap()));
+            hopDong.setNgayBatDau(convertToUTC(hopDong.getNgayBatDau()));
+            hopDong.setThoiHan(convertToUTC(hopDong.getThoiHan()));
             hopDong.setTrangThai(false);
             hopDong.setChuKy(hopDong.getCanHo().getChuKy());
             hopDong = hopDongService.save(hopDong);
@@ -287,9 +290,15 @@ public class QuanLyHopDongController {
     public ResponseEntity<?> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
-            yeuCauDichVu.setNgayYeuCau(getNow());
+            yeuCauDichVu.setNgayYeuCau(convertToUTC(yeuCauDichVu.getNgayYeuCau()));
+            yeuCauDichVu.setThoiHan(convertToUTC(yeuCauDichVu.getThoiHan()));
             yeuCauDichVu.setTrangThai(false);
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
+            if(yeuCauDichVu.getChuKy()!=0){
+                if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+                    return new ResponseEntity<>("Có hợp đồng dịch vụ đang hoạt động",HttpStatus.OK);
+                }
+            }
             yeuCauDichVu = hopDongService.saveDichVu(yeuCauDichVu);
             DichVu dichVu = yeuCauDichVu.getDichVu();
             List<CTDKDichVu> chiTietDieuKhoanDichVuList = dichVu.getChiTietDieuKhoanDichVuList();

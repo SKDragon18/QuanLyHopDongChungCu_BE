@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
+import com.thuctap.quanlychungcu.dto.KhachHangDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
 import com.thuctap.quanlychungcu.model.Quyen;
@@ -17,16 +19,33 @@ public class TaiKhoanService {
     TaiKhoanRepository taiKhoanRepository;
 
     @Autowired
+    KhachHangService khachHangService;
+
+    @Autowired
+    BanQuanLyService banQuanLyService;
+
+    @Autowired
     QuyenService quyenService;
 
     public TaiKhoanDTO mapToTaiKhoanDTO(TaiKhoan taiKhoan){
         if(taiKhoan==null)return null;
         QuyenDTO quyenDTO = quyenService.mapToQuyenDTO(taiKhoan.getQuyen());
+        
+        KhachHangDTO khachHangDTO = khachHangService
+        .mapToKhachHangDTO(khachHangService.findById(
+            taiKhoan.getTenDangNhap()));
+        
+            BanQuanLyDTO banQuanLyDTO = banQuanLyService
+        .mapToBanQuanLyDTO(banQuanLyService.findById(
+            taiKhoan.getTenDangNhap()));
+
         return TaiKhoanDTO.builder()
             .tenDangNhap(taiKhoan.getTenDangNhap())
             .matKhau(taiKhoan.getMatKhau())
             .quyen(quyenDTO)
             .khoa(taiKhoan.getKhoa())
+            .banQuanLy(banQuanLyDTO)
+            .khachHang(khachHangDTO)
             .build();
     }
 

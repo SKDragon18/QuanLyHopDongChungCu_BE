@@ -1,18 +1,15 @@
 package com.thuctap.quanlychungcu.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TaiKhoanDTO {
+public class DangNhapDTO {
     private String tenDangNhap;
     private String matKhau;
-    private QuyenDTO quyen;
-    private Boolean khoa;
-    private KhachHangDTO khachHang;
-    private BanQuanLyDTO banQuanLy;
 }

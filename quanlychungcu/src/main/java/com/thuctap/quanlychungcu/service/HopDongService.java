@@ -205,7 +205,10 @@ public class HopDongService {
         Timestamp thoiHanTruoc = minusDay(yeuCauDichVu.getThoiHan(), 7);
         Timestamp thoiHanSau = plusDay(yeuCauDichVu.getThoiHan(), 7);
         Timestamp now = getNow();
-        if(now.after(thoiHanTruoc)&&now.before(thoiHanSau)){
+        if(yeuCauDichVu.getChuKy()==0){
+            hopDongDichVuKhachHangDTO.setGiaHan(false);
+        }
+        else if(now.after(thoiHanTruoc)&&now.before(thoiHanSau)){
             hopDongDichVuKhachHangDTO.setGiaHan(true);
         }
         else if(now.after(thoiHanSau)){
@@ -273,6 +276,15 @@ public class HopDongService {
 
     public boolean isExistsDichVuById(long id){
         return yeuCauDichVuRepository.existsById(id);
+    }
+    public boolean isExistsByHopDongDichVu(HopDong hopDong, DichVu dichVu){
+        List<YeuCauDichVu> list = findAllDichVu();
+        for(YeuCauDichVu x: list){
+            if(!x.getTrangThai()&x.getHopDong().equals(hopDong)&&x.getDichVu().equals(dichVu)){
+                return true;
+            }
+        }
+        return false;
     }
 
 
