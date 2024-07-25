@@ -1,5 +1,7 @@
 package com.thuctap.quanlychungcu.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +26,13 @@ import com.thuctap.quanlychungcu.model.KhachHang;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.service.AuthenticateService;
 import com.thuctap.quanlychungcu.service.BanQuanLyService;
+import com.thuctap.quanlychungcu.service.EmailService;
 import com.thuctap.quanlychungcu.service.KhachHangService;
 import com.thuctap.quanlychungcu.service.TaiKhoanService;
 
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -51,6 +55,8 @@ public class NguoiDung {
 
     @Autowired
     AuthenticateService authenticateService;
+    @Autowired
+    EmailService emailService;
 
     @PostMapping("/dangnhap")
     public ApiResponse<TaiKhoanDTO> dangNhap(@RequestBody DangNhapDTO dangNhapDTO) {
@@ -127,8 +133,8 @@ public class NguoiDung {
         }
     }
 
-    @PostMapping("/doimatkhau")
-    public ApiResponse<String> postMethodName(@RequestBody DoiMatKhauDTO doiMatKhauDTO) {
+    @PutMapping("/doimatkhau")
+    public ApiResponse<String> doiMatKhau(@RequestBody DoiMatKhauDTO doiMatKhauDTO) {
         if(doiMatKhauDTO.getTenDangNhap()==null||doiMatKhauDTO.getTenDangNhap().isEmpty()){
             return ApiResponse.<String>builder().code(400)
                 .message("Vui lòng nhập tên đăng nhập").build();
@@ -147,10 +153,72 @@ public class NguoiDung {
                 return ApiResponse.<String>builder().code(404)
                     .message("Không tìm thấy tài khoản").build();
             }
-            taiKhoan = authenticateService.changePassword(doiMatKhauDTO, taiKhoan);
+            taiKhoan = taiKhoanService.changePassword(doiMatKhauDTO.getMatKhauCu(),
+            doiMatKhauDTO.getMatKhauMoi(), taiKhoan);
             if(taiKhoan==null){
                 return ApiResponse.<String>builder().code(400)
                     .message("Mật khẩu cũ không đúng").build();
+            }
+            return ApiResponse.<String>builder().code(200)
+                    .result("Đổi mật khẩu thành công").build();
+        }
+        catch(Exception e){
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
+        }
+    }
+
+    @GetMapping("/maxacnhan/{id}")
+    public ApiResponse<String> getMaXacNhan(@PathVariable String id){
+        String uuid = UUID.randomUUID().toString().substring(0, 8);
+        TaiKhoan taiKhoan = taiKhoanService.findById(id);
+        if(taiKhoan==null){
+            return ApiResponse.<String>builder().code(400)
+                .message("Không tìm thấy tài khoản").build();
+        }
+        String email=null;
+        if(banQuanLyService.isExistsById(id)){
+            email = banQuanLyService.findById(id).getEmail();
+        }
+        else if(khachHangService.isExistsById(id)){
+            email = khachHangService.findById(id).getEmail();
+        }
+        if(email==null){
+            return ApiResponse.<String>builder().code(400)
+                .message("Không thể lấy thông tin email").build();
+        }
+        try{
+            emailService.sendSimpleEmail(email, "Mã xác thực website chung cư", uuid);
+            return ApiResponse.<String>builder().code(200)
+                .result(uuid).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
+        }
+    }
+
+    @PutMapping("/quenmatkhau")
+    public ApiResponse<String> quenMatKhau(@RequestBody DoiMatKhauDTO doiMatKhauDTO) {
+        if(doiMatKhauDTO.getTenDangNhap()==null||doiMatKhauDTO.getTenDangNhap().isEmpty()){
+            return ApiResponse.<String>builder().code(400)
+                .message("Vui lòng nhập tên đăng nhập").build();
+        }
+        if(doiMatKhauDTO.getMatKhauMoi()==null||doiMatKhauDTO.getMatKhauMoi().isEmpty()){
+            return ApiResponse.<String>builder().code(400)
+                .message("Vui lòng nhập mật khẩu mới").build();
+        }
+        try{
+            TaiKhoan taiKhoan = taiKhoanService.findById(doiMatKhauDTO.getTenDangNhap());
+            if(taiKhoan==null){
+                return ApiResponse.<String>builder().code(404)
+                    .message("Không tìm thấy tài khoản").build();
+            }
+            taiKhoan = taiKhoanService.changePassword(null,
+            doiMatKhauDTO.getMatKhauMoi(), taiKhoan);
+            if(taiKhoan==null){
+                return ApiResponse.<String>builder().code(400)
+                    .message("Lỗi hệ thống").build();
             }
             return ApiResponse.<String>builder().code(200)
                     .result("Đổi mật khẩu thành công").build();

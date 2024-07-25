@@ -65,14 +65,7 @@ public class AuthenticateService {
         return token;
     }
 
-    public TaiKhoan changePassword(DoiMatKhauDTO doiMatKhauDTO, TaiKhoan taiKhoan){
-        if(!passwordEncoder.matches(doiMatKhauDTO.getMatKhauCu(), taiKhoan.getMatKhau())){
-            return null;
-        }
-        taiKhoan.setMatKhau(passwordEncoder.encode(doiMatKhauDTO.getMatKhauMoi()));
-        taiKhoan = taiKhoanService.save(taiKhoan);
-        return taiKhoan;
-    }
+    
 
     public String generateToken(TaiKhoan taiKhoan){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);

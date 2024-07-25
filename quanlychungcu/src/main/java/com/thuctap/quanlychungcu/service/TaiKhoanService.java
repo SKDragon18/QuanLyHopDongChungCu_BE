@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
 import com.thuctap.quanlychungcu.dto.DangKyDTO;
 import com.thuctap.quanlychungcu.dto.DangKyNVDTO;
+import com.thuctap.quanlychungcu.dto.DoiMatKhauDTO;
 import com.thuctap.quanlychungcu.dto.KhachHangDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
@@ -91,6 +92,15 @@ public class TaiKhoanService {
 
     public TaiKhoan save(TaiKhoan taiKhoan){
         return taiKhoanRepository.save(taiKhoan);
+    }
+
+    public TaiKhoan changePassword(String oldPass, String newPass, TaiKhoan taiKhoan){
+        if(oldPass!=null&&!passwordEncoder.matches(oldPass, taiKhoan.getMatKhau())){
+            return null;
+        }
+        taiKhoan.setMatKhau(passwordEncoder.encode(newPass));
+        taiKhoan = save(taiKhoan);
+        return taiKhoan;
     }
 
     public void deleteById(String id){

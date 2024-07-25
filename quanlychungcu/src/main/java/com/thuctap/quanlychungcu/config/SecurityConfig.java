@@ -26,7 +26,6 @@ public class SecurityConfig {
     private final String [] KHACHHANG_ROLE={
     };
     private final String [] QUANLY_ROLE={
-        "/hoadon/**",
         "/canho/**",
         "/dichvu/**",
         "/banggia/**"
@@ -45,6 +44,8 @@ public class SecurityConfig {
         // .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).hasRole("quanly")//hasAuthority("ROLE_quyen")
         // .requestMatchers(HttpMethod.POST, "/*/*").permitAll()
         // .requestMatchers(HttpMethod.GET, "/canho/loaiphong").permitAll()
+        .requestMatchers(HttpMethod.GET,"/hoadon/**").hasAnyRole("khachhang","quanly")
+        
         .requestMatchers(HttpMethod.GET, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.POST, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.PUT, QUANLY_ROLE).hasRole("quanly")

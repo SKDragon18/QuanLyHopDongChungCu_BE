@@ -1,6 +1,7 @@
 package com.thuctap.quanlychungcu.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,12 +19,16 @@ import com.thuctap.quanlychungcu.dto.DangKyNVDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
 import com.thuctap.quanlychungcu.model.BanQuanLy;
+import com.thuctap.quanlychungcu.model.KhachHang;
 import com.thuctap.quanlychungcu.model.Quyen;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.service.BanQuanLyService;
+import com.thuctap.quanlychungcu.service.EmailService;
+import com.thuctap.quanlychungcu.service.KhachHangService;
 import com.thuctap.quanlychungcu.service.QuyenService;
 import com.thuctap.quanlychungcu.service.TaiKhoanService;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +48,13 @@ public class QuanLyTaiKhoanController {
     BanQuanLyService banQuanLyService;
 
     @Autowired
+    KhachHangService khachHangService;
+
+    @Autowired
     QuyenService quyenService;
+
+    @Autowired
+    EmailService emailService;
 
     @GetMapping
     public ApiResponse<List<TaiKhoanDTO>> getAllTaiKhoan(){
@@ -88,6 +99,7 @@ public class QuanLyTaiKhoanController {
         }
     }
 
+    @Transactional
     @PutMapping("/updatekhoa/{id}")
     public ApiResponse<String> updateTrangThaiTaiKhoan(@PathVariable String id) {
         TaiKhoan taiKhoan = taiKhoanService.findById(id);
@@ -97,7 +109,12 @@ public class QuanLyTaiKhoanController {
         }
         try{
             taiKhoan.setKhoa(!taiKhoan.getKhoa());
-            taiKhoan=taiKhoanService.save(taiKhoan);
+            taiKhoanService.save(taiKhoan);
+            BanQuanLy banQuanLy = banQuanLyService.findById(id);
+            if(banQuanLy!=null){
+                banQuanLy.setNghi(!banQuanLy.getNghi());
+                banQuanLyService.save(banQuanLy);
+            }
             return ApiResponse.<String>builder().code(200)
                 .result("Cập nhật trạng thái thành công").build();
         }
@@ -141,7 +158,45 @@ public class QuanLyTaiKhoanController {
         
     }
 
-    
+    @PutMapping("/reset/{id}")
+    public ApiResponse<String> resetMKTaiKhoan(@PathVariable String id) {
+        TaiKhoan taiKhoan = taiKhoanService.findById(id);
+        if(taiKhoan==null){
+            return ApiResponse.<String>builder().code(404)
+            .message("Không tìm thấy tài khoản").build();
+        }
+        try{
+            String newPass = UUID.randomUUID().toString().substring(0, 8);
+            taiKhoan = taiKhoanService.changePassword(null,newPass, taiKhoan);
+            if(taiKhoan==null){
+                return ApiResponse.<String>builder().code(400)
+            .message("Lỗi hệ thống").build();
+            }
+            System.out.println(taiKhoan.getMatKhau());
+            String email=null;
+            if(banQuanLyService.isExistsById(id)){
+                email = banQuanLyService.findById(id).getEmail();
+            }
+            else if(khachHangService.isExistsById(id)){
+                email = khachHangService.findById(id).getEmail();
+            }
+            if(email==null){
+                return ApiResponse.<String>builder().code(400)
+                    .message("Không thể lấy thông tin email").build();
+            }
+            emailService.sendSimpleEmail(email, "Reset mật khẩu: Gửi bạn mật khẩu mới", newPass);
+            System.out.println("//////////////");
+            System.out.println("newPass: "+newPass);
+            return ApiResponse.<String>builder().code(200)
+                .result("Reset thành công...Mật khẩu mới đã được gửi vào email chủ tài khoản!").build();
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+        
+    }
 
     @GetMapping("/quyen")
     public ApiResponse<List<QuyenDTO>> getAllQuyen(){
