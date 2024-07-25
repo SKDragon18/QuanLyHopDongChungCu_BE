@@ -8,13 +8,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.DieuKhoanDTO;
 import com.thuctap.quanlychungcu.dto.HoaDonDTO;
 import com.thuctap.quanlychungcu.dto.HopDongDTO;
@@ -81,17 +80,19 @@ public class QuanLyHopDongController {
     }
 
     @GetMapping
-    public ResponseEntity<List<HopDongKhachHangDTO>> getAllHopDong(){
+    public ApiResponse<List<HopDongKhachHangDTO>> getAllHopDong(){
         List<HopDong> hopDongList = hopDongService.findAll();
         List<HopDongKhachHangDTO> hopDongDTOList = hopDongList.stream()
         .map(hopDong -> hopDongService.mapToHopDongKhachHangDTO(hopDong)).toList();
-        return new ResponseEntity<>(hopDongDTOList,HttpStatus.OK);
+        return ApiResponse.<List<HopDongKhachHangDTO>>builder().code(200)
+                .result(hopDongDTOList).build();
     }
 
     @GetMapping("/khachhang/{id}")
-    public ResponseEntity<?> getHopDongKhachHang(@PathVariable("id") long id){
+    public ApiResponse<HopDongKhachHangDTO> getHopDongKhachHang(@PathVariable("id") long id){
         if(!hopDongService.isExistsById(id)){
-            return new ResponseEntity<>("Không tồn tại hợp đồng",HttpStatus.BAD_REQUEST);
+            return ApiResponse.<HopDongKhachHangDTO>builder().code(400)
+                .message("Không tồn tại hợp đồng").build();
         }
         try{
             HopDong hopDong = hopDongService.findById(id);
@@ -101,43 +102,50 @@ public class QuanLyHopDongController {
                 dieuKhoanList.add(dieuKhoanService.mapToDieuKhoanDTO(x.getDieuKhoan()));
             }
             hopDongDTO.setDieuKhoanList(dieuKhoanList);
-            return new ResponseEntity<>(hopDongDTO,HttpStatus.OK);
+            return ApiResponse.<HopDongKhachHangDTO>builder().code(200)
+                .result(hopDongDTO).build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<HopDongKhachHangDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @GetMapping("/khachhangall/{id}")
-    public ResponseEntity<?> getAllHopDongKhachHang(@PathVariable("id") String id){
+    public ApiResponse<List<HopDongKhachHangDTO>> getAllHopDongKhachHang(@PathVariable("id") String id){
         if(!khachHangService.isExistsById(id)){
-            return new ResponseEntity<>("Không tồn tại khách hàng",HttpStatus.BAD_REQUEST);
+            return ApiResponse.<List<HopDongKhachHangDTO>>builder().code(400)
+                .message("Không tồn tại khách hàng").build();
         }
         try{
             List<HopDong> hopDongList = hopDongService.findAllByMaKhachHang(id);
             List<HopDongKhachHangDTO> hopDongDTOList = hopDongList.stream()
             .map(hopDong -> hopDongService.mapToHopDongKhachHangDTO(hopDong)).toList();
-            return new ResponseEntity<>(hopDongDTOList,HttpStatus.OK);
+            return ApiResponse.<List<HopDongKhachHangDTO>>builder().code(200)
+                .result(hopDongDTOList).build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<List<HopDongKhachHangDTO>>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getHopDong(@PathVariable("id") long id){
+    public ApiResponse<HopDongDTO> getHopDong(@PathVariable("id") long id){
         HopDong hopDong = hopDongService.findById(id);
         if(hopDong==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<HopDongDTO>builder().code(404)
+                .message("Không tìm thấy").build();
         }
         HopDongDTO hopDongDTO = hopDongService.mapToHopDongDTO(hopDong);
-        return new ResponseEntity<>(hopDongDTO,HttpStatus.OK);
+        return ApiResponse.<HopDongDTO>builder().code(200)
+                .result(hopDongDTO).build();
     }
 
     @PostMapping
-    public ResponseEntity<?> insertHopDong(@RequestBody HopDongDTO hopDongDTO) {
+    public ApiResponse<String> insertHopDong(@RequestBody HopDongDTO hopDongDTO) {
         
         try{
             HopDong hopDong = hopDongService.mapToHopDong(hopDongDTO);
@@ -163,43 +171,48 @@ public class QuanLyHopDongController {
                 hoaDon.setTongHoaDon(hopDong.getGiaTri());
                 hoaDon = hoaDonService.save(hoaDon);
                 if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-                    return new ResponseEntity<>("Đăng ký thành công",HttpStatus.OK);
+                    return ApiResponse.<String>builder().code(200)
+                    .result("Đăng ký thành công").build();
                 }
                 else{
-                    return new ResponseEntity<>("Đăng ký thành công, thanh toán thất bại",HttpStatus.OK);
+                    return ApiResponse.<String>builder().code(200)
+                    .result("Đăng ký thành công, thanh toán thất bại").build();
                 }
             }
             else{
-                return new ResponseEntity<>("Đăng ký thất bại",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                    .message("Đăng ký thất bại").build();
             }
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 
     // @PutMapping
-    // public ResponseEntity<?> updateHopDong(@RequestBody HopDongDTO hopDongDTO) {
+    // public ApiResponse<?> updateHopDong(@RequestBody HopDongDTO hopDongDTO) {
     //     if (!hopDongService.isExistsById(hopDongDTO.getIdHopDong())) {
-    //         return new ResponseEntity<>("Hợp đồng không tồn tại", HttpStatus.BAD_REQUEST);
+    //         return new ApiResponse<>("Hợp đồng không tồn tại", HttpStatus.BAD_REQUEST);
     //     }
     //     try{
     //         HopDong hopDong = hopDongService.mapToHopDong(hopDongDTO);
     //         hopDong = hopDongService.save(hopDong);
     //         HopDongDTO hopDongDTO2 = hopDongService.mapToHopDongDTO(hopDong);
-    //         return new ResponseEntity<>(hopDongDTO2, HttpStatus.OK);
+    //         return new ApiResponse<>(hopDongDTO2, HttpStatus.OK);
     //     }
     //     catch(Exception e){
-    //         return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+    //         return new ApiResponse<>(e.getMessage(),HttpStatus.BAD_REQUEST);
     //     }
     // }
 
     //Gia hạn
     @PutMapping("/giahan/{id}")
-    public ResponseEntity<?> giaHanHopDong(@PathVariable long id) {
+    public ApiResponse<String> giaHanHopDong(@PathVariable long id) {
         if (!hopDongService.isExistsById(id)) {
-            return new ResponseEntity<>("Hợp đồng không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message("Hợp đồng không tồn tại").build();
         }
         try{
             HopDong hopDong = hopDongService.findById(id);
@@ -212,46 +225,54 @@ public class QuanLyHopDongController {
             hoaDon.setTongHoaDon(hopDong.getGiaTri());
             hoaDon = hoaDonService.save(hoaDon);
             if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
-                return new ResponseEntity<>("Gia hạn thành công", HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                    .result("Gia hạn thành công").build();
             } else {
-                return new ResponseEntity<>("Gia hạn thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                    .message("Gia hạn thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 
     //Hủy hợp đồng
     @PutMapping("/huy/{id}")
-    public ResponseEntity<?> huyHopDong(@PathVariable long id) {
+    public ApiResponse<String> huyHopDong(@PathVariable long id) {
         if (!hopDongService.isExistsById(id)) {
-            return new ResponseEntity<>("Hợp đồng không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message("Hợp đồng không tồn tại").build();
         }
         try{
             HopDong hopDong = hopDongService.findById(id);
             hopDong.setTrangThai(true);
             hopDong=hopDongService.save(hopDong);
-            return new ResponseEntity<>("Hủy thành công, bạn vẫn có thể sử dụng căn hộ trước thời hạn", HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+                    .result("Hủy thành công, bạn vẫn có thể sử dụng căn hộ trước thời hạn").build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 
     @GetMapping("/dichvu")
-    public ResponseEntity<List<HopDongDichVuKhachHangDTO>> getAllHopDongDichVu(){
+    public ApiResponse<List<HopDongDichVuKhachHangDTO>> getAllHopDongDichVu(){
         List<YeuCauDichVu> yeuCauDichVuList = yeuCauDichVuService.findAll();
         List<HopDongDichVuKhachHangDTO> hopDongDTOList = yeuCauDichVuList.stream()
         .map(yeuCauDichVu -> hopDongService.mapToHopDongDichVuKhachHangDTO(yeuCauDichVu)).toList();
-        return new ResponseEntity<>(hopDongDTOList,HttpStatus.OK);
+        return ApiResponse.<List<HopDongDichVuKhachHangDTO>>builder().code(200)
+                    .result(hopDongDTOList).build();
     }
 
     //Hợp đồng dịch vụ
     @GetMapping("/dichvu/khachhang/{id}")
-    public ResponseEntity<?> getHopDongDichVuKhachHang(@PathVariable("id") long id){
+    public ApiResponse<HopDongDichVuKhachHangDTO> getHopDongDichVuKhachHang(@PathVariable("id") long id){
         if(!yeuCauDichVuService.isExistsById(id)){
-            return new ResponseEntity<>("Không tồn tại hợp đồng",HttpStatus.BAD_REQUEST);
+            return ApiResponse.<HopDongDichVuKhachHangDTO>builder().code(400)
+                    .message("Không tồn tại hợp đồng").build();
         }
         try{
             YeuCauDichVu yeuCauDichVu = yeuCauDichVuService.findById(id);
@@ -261,33 +282,38 @@ public class QuanLyHopDongController {
                 dieuKhoanList.add(dieuKhoanService.mapToDieuKhoanDTO(x.getDieuKhoan()));
             }
             hopDongDTO.setDieuKhoanList(dieuKhoanList);
-            return new ResponseEntity<>(hopDongDTO,HttpStatus.OK);
+            return ApiResponse.<HopDongDichVuKhachHangDTO>builder().code(200)
+                    .result(hopDongDTO).build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<HopDongDichVuKhachHangDTO>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 
     @GetMapping("/dichvu/khachhangall/{id}")
-    public ResponseEntity<?> getAllHopDongDichVuKhachHang(@PathVariable("id") String id){
+    public ApiResponse<List<HopDongDichVuKhachHangDTO>> getAllHopDongDichVuKhachHang(@PathVariable("id") String id){
         if(!khachHangService.isExistsById(id)){
-            return new ResponseEntity<>("Không tồn tại khách hàng",HttpStatus.BAD_REQUEST);
+            return ApiResponse.<List<HopDongDichVuKhachHangDTO>>builder().code(400)
+                    .message("Không tồn tại khách hàng").build();
         }
         try{
             List<YeuCauDichVu> yeuCauDichVuList = hopDongService.findAllDichVuByMaKhachHang(id);
             List<HopDongDichVuKhachHangDTO> hopDongDTOList = yeuCauDichVuList.stream()
             .map(yeuCauDichVu -> hopDongService.mapToHopDongDichVuKhachHangDTO(yeuCauDichVu)).toList();
-            return new ResponseEntity<>(hopDongDTOList,HttpStatus.OK);
+            return ApiResponse.<List<HopDongDichVuKhachHangDTO>>builder().code(200)
+                    .result(hopDongDTOList).build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<List<HopDongDichVuKhachHangDTO>>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 
     @PostMapping("/dichvu")
-    public ResponseEntity<?> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
+    public ApiResponse<String> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
             yeuCauDichVu.setNgayYeuCau(convertToUTC(yeuCauDichVu.getNgayYeuCau()));
@@ -296,7 +322,8 @@ public class QuanLyHopDongController {
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
             if(yeuCauDichVu.getChuKy()!=0){
                 if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
-                    return new ResponseEntity<>("Có hợp đồng dịch vụ đang hoạt động",HttpStatus.OK);
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Có hợp đồng dịch vụ đang hoạt động").build();
                 }
             }
             yeuCauDichVu = hopDongService.saveDichVu(yeuCauDichVu);
@@ -315,27 +342,32 @@ public class QuanLyHopDongController {
                 hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
                 hoaDon = hoaDonService.save(hoaDon);
                 if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-                    return new ResponseEntity<>("Đăng ký thành công",HttpStatus.OK);
+                    return ApiResponse.<String>builder().code(200)
+                    .result("Đăng ký thành công").build();
                 }
                 else{
-                    return new ResponseEntity<>("Đăng ký thành công, thanh toán thất bại",HttpStatus.OK);
+                    return ApiResponse.<String>builder().code(200)
+                    .result("Đăng ký thành công, thanh toán thất bại").build();
                 }
             }
             else{
-                return new ResponseEntity<>("Đăng ký thất bại",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(200)
+                    .result("Đăng ký thất bại").build();
             }
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(200)
+                    .result(e.getMessage()).build();
         }
     }
 
     //Gia hạn
     @PutMapping("/dichvu/giahan/{id}")
-    public ResponseEntity<?> giaHanHopDongDichVu(@PathVariable long id) {
+    public ApiResponse<String> giaHanHopDongDichVu(@PathVariable long id) {
         if (!hopDongService.isExistsDichVuById(id)) {
-            return new ResponseEntity<>("Hợp đồng dịch vụ không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message("Hợp đồng dịch vụ không tồn tại").build();
         }
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
@@ -347,30 +379,36 @@ public class QuanLyHopDongController {
             hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
             hoaDon = hoaDonService.save(hoaDon);
             if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
-                return new ResponseEntity<>("Gia hạn thành công", HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                    .result("Gia hạn thành công").build();
             } else {
-                return new ResponseEntity<>("Gia hạn thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                    .message("Gia hạn thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 
     //Hủy hợp đồng
     @PutMapping("dichvu/huy/{id}")
-    public ResponseEntity<?> huyHopDongDichVu(@PathVariable long id) {
+    public ApiResponse<String> huyHopDongDichVu(@PathVariable long id) {
         if (!hopDongService.isExistsDichVuById(id)) {
-            return new ResponseEntity<>("Hợp đồng dịch vụ không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message("Hợp đồng dịch vụ không tồn tại").build();
         }
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
             yeuCauDichVu.setTrangThai(true);
             yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
-            return new ResponseEntity<>("Hủy thành công, bạn vẫn có thể sử dụng dịch vụ trước thời hạn", HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+                    .result("Hủy thành công, bạn vẫn có thể sử dụng dịch vụ trước thời hạn").build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
 

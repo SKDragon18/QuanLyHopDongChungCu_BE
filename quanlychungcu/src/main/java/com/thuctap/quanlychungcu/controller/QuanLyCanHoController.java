@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.CanHoDTO;
 import com.thuctap.quanlychungcu.dto.LoaiPhongDTO;
 import com.thuctap.quanlychungcu.model.CanHo;
@@ -40,64 +40,73 @@ public class QuanLyCanHoController {
     HinhAnhService hinhAnhService;
 
     @GetMapping
-    public ResponseEntity<List<CanHoDTO>> getAllCanHo(){
+    public ApiResponse<List<CanHoDTO>> getAllCanHo(){
         List<CanHo> canHoList = canHoService.findAll();
         List<CanHoDTO> canHoDTOList = canHoList.stream()
         .map(canHo -> canHoService.mapToCanHoDTO(canHo,true)).toList();
-        return new ResponseEntity<>(canHoDTOList,HttpStatus.OK);
+        return ApiResponse.<List<CanHoDTO>>builder().code(200)
+        .result(canHoDTOList).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCanHo(@PathVariable("id") int id){
+    public ApiResponse<CanHoDTO> getCanHo(@PathVariable("id") int id){
         CanHo canHo = canHoService.findById(id);
         if(canHo==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<CanHoDTO>builder().code(404)
+            .message("Không tìm thấy").build();
         }
         CanHoDTO canHoDTO = canHoService.mapToCanHoDTO(canHo,true);
         if(canHoDTO==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<CanHoDTO>builder().code(404)
+            .message("Không tìm thấy").build();
         }
-        return new ResponseEntity<>(canHoDTO,HttpStatus.OK);
+        return ApiResponse.<CanHoDTO>builder().code(200)
+        .result(canHoDTO).build();
     }
 
     @PostMapping
-    public ResponseEntity<?> insertCanHo(@RequestBody CanHoDTO canHoDTO) {
+    public ApiResponse<CanHoDTO> insertCanHo(@RequestBody CanHoDTO canHoDTO) {
         CanHo canHo = canHoService.mapToCanHo(canHoDTO);
         canHo.setTrangThai(false);
         try{
             canHo = canHoService.save(canHo);
             if(canHoService.isExistsById(canHo.getIdCanHo())){
                 CanHoDTO canHoDTO2 = canHoService.mapToCanHoDTO(canHo,false);
-                return new ResponseEntity<>(canHoDTO2,HttpStatus.OK);
+                return ApiResponse.<CanHoDTO>builder().code(200)
+                .result(canHoDTO2).build();
             }
             else{
-                return new ResponseEntity<>("Thêm thất bại",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<CanHoDTO>builder().code(400)
+                .message("Thêm thất bại").build();
             }
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<CanHoDTO>builder().code(400)
+            .message(e.getMessage()).build();
         }
     }
 
     @PostMapping("/hinhanh")
-    public ResponseEntity<?> insertHinhAnhCanHo(@RequestParam("images")MultipartFile[] images, 
+    public ApiResponse<String> insertHinhAnhCanHo(@RequestParam("images")MultipartFile[] images, 
     @RequestParam("idCanHo") int idCanHo) {
         try{
             CanHo canHo = canHoService.findById(idCanHo);
             for(MultipartFile image: images){
                 hinhAnhService.downloadHinhAnh(image, null, canHo);
             }
-            return new ResponseEntity<>("Thêm thành công",HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+            .result("Thêm thành công").build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
         }
     }
 
     @PostMapping("/doihinhanh")
-    public ResponseEntity<?> changeHinhAnhCanHo(@RequestParam("images")MultipartFile[] images, 
+    public ApiResponse<String> changeHinhAnhCanHo(@RequestParam("images")MultipartFile[] images, 
     @RequestParam("idCanHo") int idCanHo) {
         try{
             CanHo canHo = canHoService.findById(idCanHo);
@@ -108,148 +117,175 @@ public class QuanLyCanHoController {
             for(MultipartFile image: images){
                 hinhAnhService.downloadHinhAnh(image, null, canHo);
             }
-            return new ResponseEntity<>("Đổi thành công",HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+            .result("Đổi thành công").build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
         }
     }
 
     @PutMapping
-    public ResponseEntity<?> updateCanHo(@RequestBody CanHoDTO canHoDTO) {
+    public ApiResponse<CanHoDTO> updateCanHo(@RequestBody CanHoDTO canHoDTO) {
         if (!canHoService.isExistsById(canHoDTO.getIdCanHo())) {
-            return new ResponseEntity<>("Căn hộ không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<CanHoDTO>builder().code(400)
+                .message("Căn hộ không tồn tại").build();
         }
         try{
             
             CanHo canHo = canHoService.mapToCanHo(canHoDTO);
             canHo=canHoService.save(canHo);
             if(!canHoService.updateDieuKhoan(canHoDTO, canHo)){
-                return new ResponseEntity<>("Lỗi update điều khoản",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<CanHoDTO>builder().code(400)
+                .message("Lỗi update điều khoản").build();
             }
             canHo=canHoService.findById(canHoDTO.getIdCanHo());
             CanHoDTO canHoDTO2 = canHoService.mapToCanHoDTO(canHo,false);
-            return new ResponseEntity<>(canHoDTO2, HttpStatus.OK);
+            return ApiResponse.<CanHoDTO>builder().code(200)
+            .result(canHoDTO2).build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<CanHoDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> changePublicCanHo(@PathVariable int id) {
+    public ApiResponse<CanHoDTO> changePublicCanHo(@PathVariable int id) {
         if (!canHoService.isExistsById(id)) {
-            return new ResponseEntity<>("Căn hộ không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<CanHoDTO>builder().code(400)
+            .message("Căn hộ không tồn tại").build();
         }
         try{
             CanHo canHo = canHoService.findById(id);
             canHo.setTrangThai(!canHo.getTrangThai());
             canHo = canHoService.save(canHo);
             CanHoDTO canHoDTO2 = canHoService.mapToCanHoDTO(canHo,false);
-            return new ResponseEntity<>(canHoDTO2, HttpStatus.OK);
+            return ApiResponse.<CanHoDTO>builder().code(200)
+            .result(canHoDTO2).build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<CanHoDTO>builder().code(400)
+            .message(e.getMessage()).build();
         }
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCanHo(@PathVariable int id) {
+    public ApiResponse<String> deleteCanHo(@PathVariable int id) {
         if (!canHoService.isExistsById(id)) {
-            return new ResponseEntity<>("Căn hộ không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+            .message("Căn hộ không tồn tại").build();
         }
         try{
             CanHo canHo = canHoService.findById(id);
             String result = hinhAnhService.deleteAllHinhAnhCanHo(canHo);
             if(!result.contains("thành công")&&!result.contains("Không có")){
                 System.out.println(result);
-                return new ResponseEntity<>("Xóa hình ảnh thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                .message("Xóa hình ảnh thất bại").build();
             }
             canHoService.deleteById(id);
             if (!canHoService.isExistsById(id)) {
-                return new ResponseEntity<>("Xóa thành công", HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                .result("Xóa thành công").build();
             } else {
-                return new ResponseEntity<>("Xóa thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                .message("Xóa thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     //Loại phòng
 
     @GetMapping("/loaiphong")
-    public ResponseEntity<List<LoaiPhongDTO>> getAllLoaiPhong(){
+    public ApiResponse<List<LoaiPhongDTO>> getAllLoaiPhong(){
         List<LoaiPhong> loaiPhongList = loaiPhongService.findAll();
         List<LoaiPhongDTO> loaiPhongDTOList = loaiPhongList.stream()
         .map(loaiPhong -> loaiPhongService.mapToLoaiPhongDTO(loaiPhong)).toList();
-        return new ResponseEntity<>(loaiPhongDTOList,HttpStatus.OK);
+        return ApiResponse.<List<LoaiPhongDTO>>builder().code(200)
+                .result(loaiPhongDTOList).build();
     }
 
     @GetMapping("/loaiphong/{id}")
-    public ResponseEntity<?> getLoaiPhong(@PathVariable("id") int id){
+    public ApiResponse<LoaiPhongDTO> getLoaiPhong(@PathVariable("id") int id){
         LoaiPhong loaiPhong = loaiPhongService.findById(id);
         if(loaiPhong==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<LoaiPhongDTO>builder().code(404)
+                .message("Không tìm thấy").build();
         }
         LoaiPhongDTO loaiPhongDTO = loaiPhongService.mapToLoaiPhongDTO(loaiPhong);
-        return new ResponseEntity<>(loaiPhongDTO,HttpStatus.OK);
+        return ApiResponse.<LoaiPhongDTO>builder().code(200)
+                .result(loaiPhongDTO).build();
     }
 
     @PostMapping("/loaiphong")
-    public ResponseEntity<?> insertLoaiPhong(@RequestBody LoaiPhongDTO loaiPhongDTO) {
+    public ApiResponse<LoaiPhongDTO> insertLoaiPhong(@RequestBody LoaiPhongDTO loaiPhongDTO) {
         LoaiPhong loaiPhong = loaiPhongService.mapToLoaiPhong(loaiPhongDTO);
         try{
             loaiPhong = loaiPhongService.save(loaiPhong);
             if(loaiPhongService.isExistsById(loaiPhong.getIdLoaiPhong())){
                 LoaiPhongDTO loaiPhongDTO2 = loaiPhongService.mapToLoaiPhongDTO(loaiPhong);
-                return new ResponseEntity<>(loaiPhongDTO2,HttpStatus.OK);
+                return ApiResponse.<LoaiPhongDTO>builder().code(200)
+                .result(loaiPhongDTO2).build();
             }
             else{
-                return new ResponseEntity<>("data",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<LoaiPhongDTO>builder().code(400)
+                .message("Lỗi lưu loại phòng").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<LoaiPhongDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PutMapping("/loaiphong")
-    public ResponseEntity<?> updateLoaiPhong(@RequestBody LoaiPhongDTO loaiPhongDTO) {
+    public ApiResponse<LoaiPhongDTO> updateLoaiPhong(@RequestBody LoaiPhongDTO loaiPhongDTO) {
         if (!loaiPhongService.isExistsById(loaiPhongDTO.getIdLoaiPhong())) {
-            return new ResponseEntity<>("Loại phòng không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<LoaiPhongDTO>builder().code(400)
+                .message("Loại phòng không tồn tại").build();
         }
         try{
             LoaiPhong loaiPhong = loaiPhongService.mapToLoaiPhong(loaiPhongDTO);
             loaiPhong = loaiPhongService.save(loaiPhong);
             LoaiPhongDTO loaiPhongDTO2 = loaiPhongService.mapToLoaiPhongDTO(loaiPhong);
-            return new ResponseEntity<>(loaiPhongDTO2, HttpStatus.OK);
+            return ApiResponse.<LoaiPhongDTO>builder().code(400)
+                .result(loaiPhongDTO2).build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<LoaiPhongDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
 
     @DeleteMapping("/loaiphong/{id}")
-    public ResponseEntity<?> deleteLoaiPhong(@PathVariable int id) {
+    public ApiResponse<String> deleteLoaiPhong(@PathVariable int id) {
         if (!loaiPhongService.isExistsById(id)) {
-            return new ResponseEntity<>("Loại phòng không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Loại phòng không tồn tại").build();
         }
         try{
             loaiPhongService.deleteById(id);
             if (!loaiPhongService.isExistsById(id)) {
-                return new ResponseEntity<>("Xóa thành công", HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                .result("Xóa thành công").build();
             } else {
-                return new ResponseEntity<>("Xóa thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                .message("Xóa thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 

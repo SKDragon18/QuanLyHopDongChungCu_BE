@@ -4,15 +4,20 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
+import com.thuctap.quanlychungcu.dto.DangKyDTO;
 import com.thuctap.quanlychungcu.dto.KhachHangDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
+import com.thuctap.quanlychungcu.model.KhachHang;
 import com.thuctap.quanlychungcu.model.Quyen;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.repository.TaiKhoanRepository;
+
+import jakarta.transaction.Transactional;
 @Service
 public class TaiKhoanService {
     @Autowired
@@ -26,6 +31,9 @@ public class TaiKhoanService {
 
     @Autowired
     QuyenService quyenService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     public TaiKhoanDTO mapToTaiKhoanDTO(TaiKhoan taiKhoan){
         if(taiKhoan==null)return null;
@@ -41,7 +49,6 @@ public class TaiKhoanService {
 
         return TaiKhoanDTO.builder()
             .tenDangNhap(taiKhoan.getTenDangNhap())
-            .matKhau(taiKhoan.getMatKhau())
             .quyen(quyenDTO)
             .khoa(taiKhoan.getKhoa())
             .banQuanLy(banQuanLyDTO)
@@ -58,7 +65,6 @@ public class TaiKhoanService {
         
         return TaiKhoan.builder()
             .tenDangNhap(taiKhoanDTO.getTenDangNhap())
-            .matKhau(taiKhoanDTO.getMatKhau())
             .quyen(quyen)
             .khoa(taiKhoanDTO.getKhoa())
             .build();
@@ -89,5 +95,26 @@ public class TaiKhoanService {
         taiKhoanRepository.deleteById(id);;
     }
 
+    @Transactional
+    public TaiKhoan register(DangKyDTO dangKyDTO){
+        TaiKhoan taiKhoan = TaiKhoan.builder()
+        .tenDangNhap(dangKyDTO.getTenDangNhap())
+        .matKhau(passwordEncoder.encode(dangKyDTO.getMatKhau()))
+        .quyen(quyenService.findById(3))
+        .khoa(false).build();
+
+        taiKhoan=save(taiKhoan);
+
+        KhachHang khachHang = KhachHang.builder()
+        .maKhachHang(dangKyDTO.getTenDangNhap())
+        .ho(dangKyDTO.getHo())
+        .ten(dangKyDTO.getTen())
+        .cmnd(dangKyDTO.getCmnd())
+        .email(dangKyDTO.getEmail())
+        .sdt(dangKyDTO.getSdt())
+        .build();
+        khachHangService.save(khachHang);
+        return taiKhoan;
+    }
     
 }

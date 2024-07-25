@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.DieuKhoanDTO;
 import com.thuctap.quanlychungcu.model.DieuKhoan;
 import com.thuctap.quanlychungcu.service.DieuKhoanService;
@@ -27,73 +27,86 @@ public class QuanLyDieuKhoanController {
     DieuKhoanService dieuKhoanService;
 
     @GetMapping
-    public ResponseEntity<List<DieuKhoanDTO>> getAllDieuKhoan(){
+    public ApiResponse<List<DieuKhoanDTO>> getAllDieuKhoan(){
         List<DieuKhoan> dieuKhoanList = dieuKhoanService.findAll();
         List<DieuKhoanDTO> dieuKhoanDTOList = dieuKhoanList.stream()
         .map(dieuKhoan -> dieuKhoanService.mapToDieuKhoanDTO(dieuKhoan)).toList();
-        return new ResponseEntity<>(dieuKhoanDTOList,HttpStatus.OK);
+        return ApiResponse.<List<DieuKhoanDTO>> builder().code(200)
+        .result(dieuKhoanDTOList).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDieuKhoan(@PathVariable("id") String id){
+    public ApiResponse<DieuKhoanDTO> getDieuKhoan(@PathVariable("id") String id){
         DieuKhoan dieuKhoan = dieuKhoanService.findById(id);
         if(dieuKhoan==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<DieuKhoanDTO> builder().code(404)
+            .message("Không tìm thấy").build();
         }
         DieuKhoanDTO dieuKhoanDTO = dieuKhoanService.mapToDieuKhoanDTO(dieuKhoan);
-        return new ResponseEntity<>(dieuKhoanDTO,HttpStatus.OK);
+        return ApiResponse.<DieuKhoanDTO> builder().code(200)
+        .result(dieuKhoanDTO).build();
     }
 
     @PostMapping
-    public ResponseEntity<?> insertDieuKhoan(@RequestBody DieuKhoanDTO dieuKhoanDTO) {
+    public ApiResponse<DieuKhoanDTO> insertDieuKhoan(@RequestBody DieuKhoanDTO dieuKhoanDTO) {
         DieuKhoan dieuKhoan = dieuKhoanService.mapToDieuKhoan(dieuKhoanDTO);
         try{
             dieuKhoan = dieuKhoanService.save(dieuKhoan);
             if(dieuKhoanService.isExistsById(dieuKhoan.getMa())){
                 DieuKhoanDTO dieuKhoanDTO2 = dieuKhoanService.mapToDieuKhoanDTO(dieuKhoan);
-                return new ResponseEntity<>(dieuKhoanDTO2,HttpStatus.OK);
+                return ApiResponse.<DieuKhoanDTO> builder().code(200)
+                .result(dieuKhoanDTO2).build();
             }
             else{
-                return new ResponseEntity<>("data",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<DieuKhoanDTO> builder().code(400)
+                .message("Lưu thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<DieuKhoanDTO> builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PutMapping
-    public ResponseEntity<?> updateDieuKhoan(@RequestBody DieuKhoanDTO dieuKhoanDTO) {
+    public ApiResponse<DieuKhoanDTO> updateDieuKhoan(@RequestBody DieuKhoanDTO dieuKhoanDTO) {
         if (!dieuKhoanService.isExistsById(dieuKhoanDTO.getMa())) {
-            return new ResponseEntity<>("Điều khoản không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<DieuKhoanDTO> builder().code(400)
+                .message("Điều khoản không tồn tại").build();
         }
         try{
             DieuKhoan dieuKhoan = dieuKhoanService.mapToDieuKhoan(dieuKhoanDTO);
             dieuKhoan = dieuKhoanService.save(dieuKhoan);
             DieuKhoanDTO dieuKhoanDTO2 = dieuKhoanService.mapToDieuKhoanDTO(dieuKhoan);
-            return new ResponseEntity<>(dieuKhoanDTO2, HttpStatus.OK);
+            return ApiResponse.<DieuKhoanDTO> builder().code(200)
+                .result(dieuKhoanDTO2).build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<DieuKhoanDTO> builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDieuKhoan(@PathVariable String id) {
+    public ApiResponse<String> deleteDieuKhoan(@PathVariable String id) {
         if (!dieuKhoanService.isExistsById(id)) {
-            return new ResponseEntity<>("Điều khoản không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String> builder().code(400)
+                .message("Điều khoản không tồn tại").build();
         }
         try{
             dieuKhoanService.deleteById(id);
             if (!dieuKhoanService.isExistsById(id)) {
-                return new ResponseEntity<>("Xóa thành công", HttpStatus.OK);
+                return ApiResponse.<String> builder().code(200)
+                .result("Xóa thành công").build();
             } else {
-                return new ResponseEntity<>("Xóa thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String> builder().code(400)
+                .message("Xóa thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String> builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 

@@ -10,9 +10,9 @@ import lombok.Builder;
 @Builder
 public class TaiKhoanDTO {
     private String tenDangNhap;
-    private String matKhau;
     private QuyenDTO quyen;
     private Boolean khoa;
     private KhachHangDTO khachHang;
     private BanQuanLyDTO banQuanLy;
+    private String token;
 }

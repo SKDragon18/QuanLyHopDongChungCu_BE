@@ -6,13 +6,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.BangGiaCTDTO;
 import com.thuctap.quanlychungcu.dto.BangGiaDTO;
 import com.thuctap.quanlychungcu.dto.CanHoBangGiaDTO;
@@ -55,17 +55,19 @@ public class QuanLyGiaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BangGiaDTO>> getAllBangGia(){
+    public ApiResponse<List<BangGiaDTO>> getAllBangGia(){
         List<BangGia> bangGiaList = bangGiaService.findAll();
         List<BangGiaDTO> bangGiaDTOList = bangGiaList.stream()
         .map(bangGia -> bangGiaService.mapToBangGiaDTO(bangGia)).toList();
-        return new ResponseEntity<>(bangGiaDTOList,HttpStatus.OK);
+        return ApiResponse.<List<BangGiaDTO>>builder().code(200)
+        .result(bangGiaDTOList).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBangGia(@PathVariable("id") long id){
+    public ApiResponse<BangGiaCTDTO> getBangGia(@PathVariable("id") long id){
         if (!bangGiaService.isExistsById(id)) {
-            return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+           return ApiResponse.<BangGiaCTDTO>builder().code(400)
+            .message("Bảng giá không tồn tại").build();
         }
         BangGia bangGia = bangGiaService.findById(id);
         List<CanHoBangGiaDTO> canHoList = bangGiaService.findCanHoListById(id);
@@ -75,29 +77,30 @@ public class QuanLyGiaController {
         bangGiaCTDTO.setNoiDung(bangGia.getNoiDung());
         bangGiaCTDTO.setCanHoList(canHoList);
         bangGiaCTDTO.setDichVuList(dichVuList);
-        return new ResponseEntity<>(bangGiaCTDTO,HttpStatus.OK);
+        return ApiResponse.<BangGiaCTDTO>builder().code(200)
+        .result(bangGiaCTDTO).build();
     }
 
     // @GetMapping("/canho/{id}")
-    // public ResponseEntity<?> getCanHoList(@PathVariable("id") long id){
+    // public ApiResponse<?> getCanHoList(@PathVariable("id") long id){
     //     if (!bangGiaService.isExistsById(id)) {
-    //         return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+    //         return new ApiResponse<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
     //     }
     //     List<CanHoBangGiaDTO> canHoList = bangGiaService.findCanHoListById(id);
-    //     return new ResponseEntity<>(canHoList,HttpStatus.OK);
+    //     return new ApiResponse<>(canHoList,HttpStatus.OK);
     // }
 
     // @GetMapping("/dichvu/{id}")
-    // public ResponseEntity<?> getDichVuList(@PathVariable("id") long id){
+    // public ApiResponse<?> getDichVuList(@PathVariable("id") long id){
     //     if (!bangGiaService.isExistsById(id)) {
-    //         return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+    //         return new ApiResponse<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
     //     }
     //     List<DichVuBangGiaDTO> dichVuList = bangGiaService.findDichVuListById(id);
-    //     return new ResponseEntity<>(dichVuList,HttpStatus.OK);
+    //     return new ApiResponse<>(dichVuList,HttpStatus.OK);
     // }
 
     @PostMapping
-    public ResponseEntity<?> insertBangGia(@RequestBody BangGiaDTO bangGiaDTO) {
+    public ApiResponse<BangGiaDTO> insertBangGia(@RequestBody BangGiaDTO bangGiaDTO) {
         BangGia bangGia = bangGiaService.mapToBangGia(bangGiaDTO);
         try{
             bangGia.setApDung(false);
@@ -106,25 +109,29 @@ public class QuanLyGiaController {
             bangGia = bangGiaService.save(bangGia);
             if(bangGiaService.isExistsById(bangGia.getIdBangGia())){
                 BangGiaDTO bangGiaDTO2 = bangGiaService.mapToBangGiaDTO(bangGia);
-                return new ResponseEntity<>(bangGiaDTO2,HttpStatus.OK);
+                return ApiResponse.<BangGiaDTO>builder().code(200)
+                .result(bangGiaDTO2).build();
             }
             else{
-                return new ResponseEntity<>("Lỗi thêm bảng giá",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<BangGiaDTO>builder().code(400)
+                .message("Lỗi thêm bảng giá").build();
             }
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<BangGiaDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     
     @PutMapping
     @Transactional
-    public ResponseEntity<?> updateBangGia(@RequestBody BangGiaCTDTO bangGiaCTDTO) {
+    public ApiResponse<String> updateBangGia(@RequestBody BangGiaCTDTO bangGiaCTDTO) {
         long idBangGia = bangGiaCTDTO.getIdBangGia();
         if (!bangGiaService.isExistsById(idBangGia)) {
-            return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Bảng giá không tồn tại").build();
         }
         try{
             BangGia bangGia = bangGiaService.findById(idBangGia);
@@ -179,35 +186,41 @@ public class QuanLyGiaController {
                     bangGiaService.saveGiaDichVu(giaDichVu);
                 }
             }
-            return new ResponseEntity<>("Thành công", HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+                .message("Thành công").build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> applyBangGia(@PathVariable long id) {
+    public ApiResponse<BangGiaDTO> applyBangGia(@PathVariable long id) {
         if (!bangGiaService.isExistsById(id)) {
-            return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<BangGiaDTO>builder().code(400)
+                .message("Bảng giá không tồn tại").build();
         }
         try{
             BangGia bangGia = bangGiaService.findById(id);
             bangGia.setApDung(!bangGia.getApDung());
             bangGia = bangGiaService.save(bangGia);
             BangGiaDTO bangGiaDTO = bangGiaService.mapToBangGiaDTO(bangGia);
-            return new ResponseEntity<>(bangGiaDTO, HttpStatus.OK);
+            return ApiResponse.<BangGiaDTO>builder().code(200)
+                .result(bangGiaDTO).build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<BangGiaDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PutMapping("/uploadcanho/{id}")
-    public ResponseEntity<?> uploadCanHoBangGia(@PathVariable long id) {
+    public ApiResponse<String> uploadCanHoBangGia(@PathVariable long id) {
         if (!bangGiaService.isExistsById(id)) {
-            return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Bảng giá không tồn tại").build();
         }
         try{
             BangGia bangGia = bangGiaService.findById(id);
@@ -223,18 +236,21 @@ public class QuanLyGiaController {
                 giaCanHo.setGia(x.getGiaThue());
                 bangGiaService.saveGiaCanHo(giaCanHo);
             }
-            return new ResponseEntity<>("Upload thành công", HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+                .result("Upload thành công").build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PutMapping("/uploaddichvu/{id}")
-    public ResponseEntity<?> uploadDichVuBangGia(@PathVariable long id) {
+    public ApiResponse<String> uploadDichVuBangGia(@PathVariable long id) {
         if (!bangGiaService.isExistsById(id)) {
-            return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Bảng giá không tồn tại").build();
         }
         try{
             BangGia bangGia = bangGiaService.findById(id);
@@ -251,29 +267,35 @@ public class QuanLyGiaController {
                 
                 bangGiaService.saveGiaDichVu(giaDichVu);
             }
-            return new ResponseEntity<>("Upload thành công", HttpStatus.OK);
+            return ApiResponse.<String>builder().code(200)
+                .result("Upload thành công").build();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBangGia(@PathVariable long id) {
+    public ApiResponse<?> deleteBangGia(@PathVariable long id) {
         if (!bangGiaService.isExistsById(id)) {
-            return new ResponseEntity<>("Bảng giá không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Bảng giá không tồn tại").build();
         }
         try{
             bangGiaService.deleteById(id);
             if (!bangGiaService.isExistsById(id)) {
-                return new ResponseEntity<>("Xóa thành công", HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                .result("Xóa thành công").build();
             } else {
-                return new ResponseEntity<>("Xóa thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                .message("Xóa thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
     
