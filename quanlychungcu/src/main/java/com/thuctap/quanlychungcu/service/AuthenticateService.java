@@ -24,6 +24,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.thuctap.quanlychungcu.dto.AuthencicationResponse;
 import com.thuctap.quanlychungcu.dto.DangNhapDTO;
+import com.thuctap.quanlychungcu.dto.DoiMatKhauDTO;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.repository.TaiKhoanRepository;
 
@@ -62,6 +63,15 @@ public class AuthenticateService {
         if(!authenticated)return null;
         String token = generateToken(taiKhoan);
         return token;
+    }
+
+    public TaiKhoan changePassword(DoiMatKhauDTO doiMatKhauDTO, TaiKhoan taiKhoan){
+        if(!passwordEncoder.matches(doiMatKhauDTO.getMatKhauCu(), taiKhoan.getMatKhau())){
+            return null;
+        }
+        taiKhoan.setMatKhau(passwordEncoder.encode(doiMatKhauDTO.getMatKhauMoi()));
+        taiKhoan = taiKhoanService.save(taiKhoan);
+        return taiKhoan;
     }
 
     public String generateToken(TaiKhoan taiKhoan){

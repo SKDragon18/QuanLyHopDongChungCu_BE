@@ -44,6 +44,14 @@ public class QuyenService {
         return quyen;
     }
 
+    public Quyen findByTenQuyen(String id){
+        Quyen quyen = quyenRepository.findByTenQuyen(id);
+        if(quyen==null){
+            return null;
+        }
+        return quyen;
+    }
+
     public boolean isExistsById(int id){
         return quyenRepository.existsById(id);
     }

@@ -23,13 +23,16 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final String [] PUBLIC_ENDPOINTS={
-        "/taikhoan",
-        "/hienthi",
-        "/nguoidung"
+    private final String [] KHACHHANG_ROLE={
     };
     private final String [] QUANLY_ROLE={
-        "/hoadon"
+        "/hoadon/**",
+        "/canho/**",
+        "/dichvu/**",
+        "/banggia/**"
+    };
+    private final String [] ADMIN_ROLE={
+        "/taikhoan/**"
     };
 
     @Value("${jwt.signerKey}")
@@ -41,12 +44,23 @@ public class SecurityConfig {
         request
         // .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).hasRole("quanly")//hasAuthority("ROLE_quyen")
         // .requestMatchers(HttpMethod.POST, "/*/*").permitAll()
+        // .requestMatchers(HttpMethod.GET, "/canho/loaiphong").permitAll()
         .requestMatchers(HttpMethod.GET, QUANLY_ROLE).hasRole("quanly")
+        .requestMatchers(HttpMethod.POST, QUANLY_ROLE).hasRole("quanly")
+        .requestMatchers(HttpMethod.PUT, QUANLY_ROLE).hasRole("quanly")
+        .requestMatchers(HttpMethod.DELETE, QUANLY_ROLE).hasRole("quanly")
+
+        .requestMatchers(HttpMethod.GET, ADMIN_ROLE).hasRole("admin")
+        .requestMatchers(HttpMethod.POST, ADMIN_ROLE).hasRole("admin")
+        .requestMatchers(HttpMethod.PUT, ADMIN_ROLE).hasRole("admin")
+        .requestMatchers(HttpMethod.DELETE, ADMIN_ROLE).hasRole("admin")
+
         .requestMatchers(
             new AntPathRequestMatcher("/*"),
             new AntPathRequestMatcher("/*/*"),
             new AntPathRequestMatcher("/*/*/*"),
             new AntPathRequestMatcher("/*/*/*/*")).permitAll()
+            
         .anyRequest().authenticated());
         
         http.oauth2ResourceServer(oauth2->

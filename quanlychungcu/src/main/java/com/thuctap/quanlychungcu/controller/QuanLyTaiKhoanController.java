@@ -13,10 +13,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thuctap.quanlychungcu.dto.ApiResponse;
+import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
+import com.thuctap.quanlychungcu.dto.DangKyNVDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
+import com.thuctap.quanlychungcu.model.BanQuanLy;
 import com.thuctap.quanlychungcu.model.Quyen;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
+import com.thuctap.quanlychungcu.service.BanQuanLyService;
 import com.thuctap.quanlychungcu.service.QuyenService;
 import com.thuctap.quanlychungcu.service.TaiKhoanService;
 
@@ -36,11 +40,13 @@ public class QuanLyTaiKhoanController {
     TaiKhoanService taiKhoanService;
 
     @Autowired
+    BanQuanLyService banQuanLyService;
+
+    @Autowired
     QuyenService quyenService;
 
     @GetMapping
     public ApiResponse<List<TaiKhoanDTO>> getAllTaiKhoan(){
-
         List<TaiKhoan> taiKhoanList = taiKhoanService.findAll();
         List<TaiKhoanDTO> taiKhoanDTOList = taiKhoanList.stream()
         .map(taiKhoan -> taiKhoanService.mapToTaiKhoanDTO(taiKhoan)).toList();
@@ -48,67 +54,132 @@ public class QuanLyTaiKhoanController {
         .result(taiKhoanDTOList).code(200).build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getTaiKhoan(@PathVariable("id") String id){
-        TaiKhoan taiKhoan = taiKhoanService.findById(id);
-        if(taiKhoan==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
-        }
-        TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan);
-        return new ResponseEntity<>(taiKhoanDTO,HttpStatus.OK);
-    }
+    // @GetMapping("/{id}")
+    // public ResponseEntity<?> getTaiKhoan(@PathVariable("id") String id){
+    //     TaiKhoan taiKhoan = taiKhoanService.findById(id);
+    //     if(taiKhoan==null){
+    //         return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+    //     }
+    //     TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan);
+    //     return new ResponseEntity<>(taiKhoanDTO,HttpStatus.OK);
+    // }
 
-    @PutMapping
-    public ResponseEntity<?> updateTaiKhoan(@RequestBody TaiKhoanDTO taiKhoanDTO) {
-        if (!taiKhoanService.isExistsById(taiKhoanDTO.getTenDangNhap())) {
-            return new ResponseEntity<>("Tài khoản không tồn tại", HttpStatus.BAD_REQUEST);
+    @PostMapping
+    public ApiResponse<String> insertTaiKhoan(@RequestBody DangKyNVDTO dangKyNVDTO){
+        if(!dangKyNVDTO.getMatKhau().equals(dangKyNVDTO.getMatKhauNhapLai())){
+            return ApiResponse.<String>builder().code(400)
+                .message("Mật khẩu nhập lại không đúng").build();
         }
         try{
-            TaiKhoan taiKhoan = taiKhoanService.mapToTaiKhoan(taiKhoanDTO);
-            taiKhoan = taiKhoanService.save(taiKhoan);
-            TaiKhoanDTO taiKhoanDTO2 = taiKhoanService.mapToTaiKhoanDTO(taiKhoan);
-            return new ResponseEntity<>(taiKhoanDTO2, HttpStatus.OK);
+            TaiKhoan taiKhoan = taiKhoanService.registerNV(dangKyNVDTO);
+            if(!taiKhoanService.isExistsById(taiKhoan.getTenDangNhap())){
+                return ApiResponse.<String>builder().code(400)
+                .message("Đăng ký thất bại").build();
+            }
+            else{
+                return ApiResponse.<String>builder().code(200)
+                .result("Đăng ký thành công").build();
+            }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            System.out.println(e.getMessage());
+            return ApiResponse.<String>builder().code(400)
+                .message("Lỗi hệ thống: "+ e.getMessage()).build();
         }
+    }
+
+    @PutMapping("/updatekhoa/{id}")
+    public ApiResponse<String> updateTrangThaiTaiKhoan(@PathVariable String id) {
+        TaiKhoan taiKhoan = taiKhoanService.findById(id);
+        if(taiKhoan==null){
+            return ApiResponse.<String>builder().code(404)
+            .message("Không tìm thấy tài khoản").build();
+        }
+        try{
+            taiKhoan.setKhoa(!taiKhoan.getKhoa());
+            taiKhoan=taiKhoanService.save(taiKhoan);
+            return ApiResponse.<String>builder().code(200)
+                .result("Cập nhật trạng thái thành công").build();
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+        
+    }
+
+    @PutMapping("/updatequyen/{id}")
+    public ApiResponse<String> updateQuyenTaiKhoan(@PathVariable String id) {
+        TaiKhoan taiKhoan = taiKhoanService.findById(id);
+        if(taiKhoan==null){
+            return ApiResponse.<String>builder().code(404)
+            .message("Không tìm thấy tài khoản").build();
+        }
+        try{
+            Quyen quyen =null;
+            if(taiKhoan.getQuyen().getTenQuyen().equals("admin")){
+                quyen = quyenService.findByTenQuyen("quanly");
+            }
+            else if(taiKhoan.getQuyen().getTenQuyen().equals("quanly")){
+                quyen = quyenService.findByTenQuyen("admin");
+            }
+            if(quyen==null){
+                return ApiResponse.<String>builder().code(400)
+                .message("Lỗi khác quyền chỉ định").build();
+            }
+            taiKhoan.setQuyen(quyen);
+            taiKhoan=taiKhoanService.save(taiKhoan);
+            return ApiResponse.<String>builder().code(200)
+                .result("Cập nhật quyền mới thành công").build();
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+        
     }
 
     
 
     @GetMapping("/quyen")
-    public ResponseEntity<List<QuyenDTO>> getAllQuyen(){
+    public ApiResponse<List<QuyenDTO>> getAllQuyen(){
         List<Quyen> quyenList = quyenService.findAll();
         List<QuyenDTO> quyenDTOList = quyenList.stream()
         .map(quyen -> quyenService.mapToQuyenDTO(quyen)).toList();
-        return new ResponseEntity<>(quyenDTOList,HttpStatus.OK);
+        return ApiResponse.<List<QuyenDTO>>builder().code(200)
+        .result(quyenDTOList).build();
     }
 
-    @GetMapping("/quyen/{id}")
-    public ResponseEntity<?> getQuyen(@PathVariable int id) {
-        if (!quyenService.isExistsById(id)) {
-            return new ResponseEntity<>("Quyền không tồn tại", HttpStatus.BAD_REQUEST);
-        }
-        Quyen quyen = quyenService.findById(id);
-        QuyenDTO quyenDTO = quyenService.mapToQuyenDTO(quyen);
-        return new ResponseEntity<>(quyenDTO, HttpStatus.OK);
-    }
+    // @GetMapping("/quyen/{id}")
+    // public ResponseEntity<?> getQuyen(@PathVariable int id) {
+    //     if (!quyenService.isExistsById(id)) {
+    //         return new ResponseEntity<>("Quyền không tồn tại", HttpStatus.BAD_REQUEST);
+    //     }
+    //     Quyen quyen = quyenService.findById(id);
+    //     QuyenDTO quyenDTO = quyenService.mapToQuyenDTO(quyen);
+    //     return new ResponseEntity<>(quyenDTO, HttpStatus.OK);
+    // }
 
     @PostMapping("/quyen")
-    public ResponseEntity<?> insertQuyen(@RequestBody QuyenDTO quyenDTO) {
+    public ApiResponse<QuyenDTO> insertQuyen(@RequestBody QuyenDTO quyenDTO) {
         Quyen quyen = quyenService.mapToQuyen(quyenDTO);
         try{
             quyen = quyenService.save(quyen);
             if(quyenService.isExistsById(quyen.getIdQuyen())){
                 QuyenDTO quyenDTO2 = quyenService.mapToQuyenDTO(quyen);
-                return new ResponseEntity<>(quyenDTO2,HttpStatus.OK);
+                return ApiResponse.<QuyenDTO>builder().code(200)
+                .result(quyenDTO2).build();
             }
             else{
-                return new ResponseEntity<>("data",HttpStatus.BAD_REQUEST);
+                return ApiResponse.<QuyenDTO>builder().code(400)
+                .message("Thêm quyền thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<QuyenDTO>builder().code(400)
+                .message(e.getMessage()).build();
         }
         
     }
@@ -147,4 +218,37 @@ public class QuanLyTaiKhoanController {
         }
     }
 
+    @GetMapping("/banquanly/{id}")
+    public ApiResponse<BanQuanLyDTO> getBanQuanLy(@PathVariable("id") String id){
+        BanQuanLy banQuanLy = banQuanLyService.findById(id); 
+        if(banQuanLy==null){
+            return ApiResponse.<BanQuanLyDTO>builder().code(404)
+            .message("Không tìm thấy thông tin").build();
+        }
+        BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(banQuanLy);
+        return ApiResponse.<BanQuanLyDTO>builder().code(200)
+            .result(banQuanLyDTO).build();
+    }
+
+    @PutMapping("/banquanly")
+    public ApiResponse<BanQuanLyDTO> updateBanQuanLy(@RequestBody BanQuanLyDTO banQuanLyDTO){
+        if(!banQuanLyService.isExistsById(banQuanLyDTO.getMa())){
+            return ApiResponse.<BanQuanLyDTO>builder().code(404)
+            .message("Ban quản lý không tồn tại").build();
+        }
+        try{
+            BanQuanLy banQuanLy = banQuanLyService.mapToBanQuanLy(banQuanLyDTO);
+            banQuanLy=banQuanLyService.save(banQuanLy);
+            BanQuanLyDTO banQuanLyDTO2 =banQuanLyService.mapToBanQuanLyDTO(banQuanLy);
+            return ApiResponse.<BanQuanLyDTO>builder().code(200)
+            .result(banQuanLyDTO2).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<BanQuanLyDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+
+        
+
+    }
 }

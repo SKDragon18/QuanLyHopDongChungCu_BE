@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 
 import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
 import com.thuctap.quanlychungcu.dto.DangKyDTO;
+import com.thuctap.quanlychungcu.dto.DangKyNVDTO;
 import com.thuctap.quanlychungcu.dto.KhachHangDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
+import com.thuctap.quanlychungcu.model.BanQuanLy;
 import com.thuctap.quanlychungcu.model.KhachHang;
 import com.thuctap.quanlychungcu.model.Quyen;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
@@ -114,6 +116,35 @@ public class TaiKhoanService {
         .sdt(dangKyDTO.getSdt())
         .build();
         khachHangService.save(khachHang);
+        return taiKhoan;
+    }
+
+    public String generateMaMoi(){
+        return taiKhoanRepository.generateMaMoi();
+    }
+
+    @Transactional
+    public TaiKhoan registerNV(DangKyNVDTO dangKyDTO){
+        String maMoi = generateMaMoi();
+        TaiKhoan taiKhoan = TaiKhoan.builder()
+        .tenDangNhap(maMoi)
+        .matKhau(passwordEncoder.encode(dangKyDTO.getMatKhau()))
+        .quyen(quyenService.findById(dangKyDTO.getIdQuyen()))
+        .khoa(false).build();
+
+        taiKhoan=save(taiKhoan);
+        BanQuanLy banQuanLy = BanQuanLy.builder()
+        .ma(maMoi)
+        .ho(dangKyDTO.getHo())
+        .ten(dangKyDTO.getTen())
+        .cmnd(dangKyDTO.getCmnd())
+        .email(dangKyDTO.getEmail())
+        .sdt(dangKyDTO.getSdt())
+        .diaChi(dangKyDTO.getDiaChi())
+        .nghi(false)
+        .build();
+        
+        banQuanLyService.save(banQuanLy);
         return taiKhoan;
     }
     

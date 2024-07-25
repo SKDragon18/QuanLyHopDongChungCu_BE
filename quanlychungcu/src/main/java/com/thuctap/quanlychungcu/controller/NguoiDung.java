@@ -63,6 +63,10 @@ public class NguoiDung {
             .message("Vui lòng nhập mật khẩu").build();
         }
         TaiKhoan taiKhoan = taiKhoanService.findById(dangNhapDTO.getTenDangNhap());
+        if(taiKhoan.getKhoa()){
+            return ApiResponse.<TaiKhoanDTO>builder().code(403)
+            .message("Tài khoản đã bị khóa").build();
+        }
         String token = authenticateService.authenticate(dangNhapDTO, taiKhoan);
         if(token==null){
             return ApiResponse.<TaiKhoanDTO>builder().code(400)
@@ -100,7 +104,7 @@ public class NguoiDung {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyToken(@RequestBody VerifyDTO verifyDTO) {
+    public ApiResponse<String> verifyToken(@RequestBody VerifyDTO verifyDTO) {
         // TaiKhoan taiKhoan = taiKhoanService.findById(dangNhapDTO.getTenDangNhap());
         // if(taiKhoan.getMatKhau().equals(dangNhapDTO.getMatKhau())){
         //     return new ResponseEntity<>("Mật khẩu không đúng", HttpStatus.BAD_REQUEST);
@@ -108,65 +112,77 @@ public class NguoiDung {
         // TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan);
         try{
             if(authenticateService.introspect(verifyDTO.getToken())){
-                return new ResponseEntity<>(ApiResponse.<String>builder()
-                .result("Đúng").build(), HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                .result("Đúng").build();
             }
             else{
-                return new ResponseEntity<>(ApiResponse.<String>builder()
-                .result("Sai").build(), HttpStatus.OK);
+                return ApiResponse.<String>builder().code(400)
+                .message("Sai").build();
             }
         }   
         catch(Exception e){
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(ApiResponse.<String>builder()
-            .result(e.getMessage()).build(), HttpStatus.OK);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 
     @PostMapping("/doimatkhau")
-    public ResponseEntity<?> postMethodName(@RequestBody DoiMatKhauDTO doiMatKhauDTO) {
+    public ApiResponse<String> postMethodName(@RequestBody DoiMatKhauDTO doiMatKhauDTO) {
         if(doiMatKhauDTO.getTenDangNhap()==null||doiMatKhauDTO.getTenDangNhap().isEmpty()){
-            return new ResponseEntity<>("Vui lòng nhập tên đăng nhập", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Vui lòng nhập tên đăng nhập").build();
         }
         if(doiMatKhauDTO.getMatKhauCu()==null||doiMatKhauDTO.getMatKhauCu().isEmpty()){
-            return new ResponseEntity<>("Vui lòng nhập mật khẩu cũ", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Vui lòng nhập mật khẩu cũ").build();
         }
         if(doiMatKhauDTO.getMatKhauMoi()==null||doiMatKhauDTO.getMatKhauMoi().isEmpty()){
-            return new ResponseEntity<>("Vui lòng nhập mật khẩu mới", HttpStatus.BAD_REQUEST);
-        }
-        TaiKhoan taiKhoan = taiKhoanService.findById(doiMatKhauDTO.getTenDangNhap());
-        if(taiKhoan.getMatKhau().equals(doiMatKhauDTO.getMatKhauCu())){
-            return new ResponseEntity<>("Mật khẩu không đúng", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message("Vui lòng nhập mật khẩu mới").build();
         }
         try{
-            taiKhoan.setMatKhau(doiMatKhauDTO.getMatKhauMoi());
-            taiKhoanService.save(taiKhoan);
-            return new ResponseEntity<>("Đổi mật khẩu thành công", HttpStatus.OK);
+            TaiKhoan taiKhoan = taiKhoanService.findById(doiMatKhauDTO.getTenDangNhap());
+            if(taiKhoan==null){
+                return ApiResponse.<String>builder().code(404)
+                    .message("Không tìm thấy tài khoản").build();
+            }
+            taiKhoan = authenticateService.changePassword(doiMatKhauDTO, taiKhoan);
+            if(taiKhoan==null){
+                return ApiResponse.<String>builder().code(400)
+                    .message("Mật khẩu cũ không đúng").build();
+            }
+            return ApiResponse.<String>builder().code(200)
+                    .result("Đổi mật khẩu thành công").build();
         }
         catch(Exception e){
-            System.out.println("Lỗi đổi mật khẩu: "+e.getMessage());
-            return new ResponseEntity<>("Đổi mật khẩu thất bại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                    .message(e.getMessage()).build();
         }
     }
     
 
     @GetMapping("/khachhang/{id}")
-    public ResponseEntity<?> getKhachHang(@PathVariable("id") String id){
+    public ApiResponse<KhachHangDTO> getKhachHang(@PathVariable("id") String id){
         KhachHang khachHang = khachHangService.findById(id);
         if(khachHang==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<KhachHangDTO>builder().code(404)
+            .message("Không tìm thấy thông tin").build();
         }
         KhachHangDTO khachHangDTO = khachHangService.mapToKhachHangDTO(khachHang);
-        return new ResponseEntity<>(khachHangDTO,HttpStatus.OK);
+        return ApiResponse.<KhachHangDTO>builder().code(200)
+            .result(khachHangDTO).build();
     }
 
     @GetMapping("/banquanly/{id}")
-    public ResponseEntity<?> getBanQuanLy(@PathVariable("id") String id){
-        BanQuanLy banQuanLy = banQuanLyService.findById(id);
+    public ApiResponse<BanQuanLyDTO> getBanQuanLy(@PathVariable("id") String id){
+        BanQuanLy banQuanLy = banQuanLyService.findById(id); 
         if(banQuanLy==null){
-            return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
+            return ApiResponse.<BanQuanLyDTO>builder().code(404)
+            .message("Không tìm thấy thông tin").build();
         }
         BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(banQuanLy);
-        return new ResponseEntity<>(banQuanLyDTO,HttpStatus.OK);
+        return ApiResponse.<BanQuanLyDTO>builder().code(200)
+            .result(banQuanLyDTO).build();
     }
 }
