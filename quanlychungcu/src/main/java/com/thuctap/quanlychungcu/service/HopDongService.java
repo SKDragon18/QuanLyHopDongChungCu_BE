@@ -280,7 +280,9 @@ public class HopDongService {
     public boolean isExistsByHopDongDichVu(HopDong hopDong, DichVu dichVu){
         List<YeuCauDichVu> list = findAllDichVu();
         for(YeuCauDichVu x: list){
-            if(!x.getTrangThai()&x.getHopDong().equals(hopDong)&&x.getDichVu().equals(dichVu)){
+            if(!x.getTrangThai()
+            &&x.getHopDong().getCanHo().getIdCanHo()==hopDong.getCanHo().getIdCanHo()
+            &&x.getDichVu().equals(dichVu)){
                 return true;
             }
         }

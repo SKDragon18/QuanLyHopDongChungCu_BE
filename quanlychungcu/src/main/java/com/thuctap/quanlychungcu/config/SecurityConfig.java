@@ -44,7 +44,7 @@ public class SecurityConfig {
         // .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).hasRole("quanly")//hasAuthority("ROLE_quyen")
         // .requestMatchers(HttpMethod.POST, "/*/*").permitAll()
         // .requestMatchers(HttpMethod.GET, "/canho/loaiphong").permitAll()
-        .requestMatchers(HttpMethod.GET,"/hoadon/**").hasAnyRole("khachhang","quanly")
+        // .requestMatchers(HttpMethod.GET,"/hoadon/**").hasAnyRole("khachhang","quanly")
         
         .requestMatchers(HttpMethod.GET, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.POST, QUANLY_ROLE).hasRole("quanly")
@@ -60,7 +60,8 @@ public class SecurityConfig {
             new AntPathRequestMatcher("/*"),
             new AntPathRequestMatcher("/*/*"),
             new AntPathRequestMatcher("/*/*/*"),
-            new AntPathRequestMatcher("/*/*/*/*")).permitAll()
+            new AntPathRequestMatcher("/*/*/*/*"),
+            new AntPathRequestMatcher("/*/*/*/*/*")).permitAll()
             
         .anyRequest().authenticated());
         

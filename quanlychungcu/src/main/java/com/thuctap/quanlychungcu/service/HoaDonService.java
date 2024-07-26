@@ -74,6 +74,16 @@ public class HoaDonService {
         return hoaDon;
     }
 
+    public HoaDon findByVnpCode(String vnpCode){
+        List<HoaDon> hoaDonList = findAll();
+        for(HoaDon x:hoaDonList){
+            if(x.getVnpCode()!=null&&x.getVnpCode().equals(vnpCode)){
+                return x;
+            }
+        }
+        return null;
+    }
+
     public boolean isExistsById(long id){
         return hoaDonRepository.existsById(id);
     }

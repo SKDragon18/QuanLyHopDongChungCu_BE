@@ -20,4 +20,5 @@ public class YeuCauDichVuDTO {
     private Timestamp thoiHan;
     private int chuKy;
     private Boolean trangThai;
+    private long soHoaDon;
 }

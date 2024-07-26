@@ -165,10 +165,13 @@ public class QuanLyHopDongController {
                 hopDongService.saveCTHopDong(chiTietHopDong);
             } 
             if(hopDongService.isExistsById(hopDong.getIdHopDong())){
-                HoaDon hoaDon = new HoaDon();
+                HoaDon hoaDon = hoaDonService.findById(hopDongDTO.getSoHoaDon());
+                if(hoaDon==null){
+                    return ApiResponse.<String>builder().code(404)
+                    .message("Không tìm thấy hóa đơn").build();
+                }
                 hoaDon.setHopDong(hopDong);
                 hoaDon.setThoiGianDong(getNow());
-                hoaDon.setTongHoaDon(hopDong.getGiaTri());
                 hoaDon = hoaDonService.save(hoaDon);
                 if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
                     return ApiResponse.<String>builder().code(200)
@@ -208,8 +211,9 @@ public class QuanLyHopDongController {
     // }
 
     //Gia hạn
-    @PutMapping("/giahan/{id}")
-    public ApiResponse<String> giaHanHopDong(@PathVariable long id) {
+    @PutMapping("/giahan/{id}/{soHoaDon}")
+    public ApiResponse<String> giaHanHopDong(@PathVariable(value="id") long id,
+     @PathVariable(value = "soHoaDon")long soHoaDon) {
         if (!hopDongService.isExistsById(id)) {
             return ApiResponse.<String>builder().code(400)
                     .message("Hợp đồng không tồn tại").build();
@@ -219,10 +223,13 @@ public class QuanLyHopDongController {
             hopDong.setThoiHan(plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
             hopDong=hopDongService.save(hopDong);
 
-            HoaDon hoaDon = new HoaDon();
+            HoaDon hoaDon = hoaDonService.findById(soHoaDon);
+            if(hoaDon==null){
+                return ApiResponse.<String>builder().code(404)
+                    .message("Không tìm thấy hóa đơn").build();
+            }
             hoaDon.setHopDong(hopDong);
             hoaDon.setThoiGianDong(getNow());
-            hoaDon.setTongHoaDon(hopDong.getGiaTri());
             hoaDon = hoaDonService.save(hoaDon);
             if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
                 return ApiResponse.<String>builder().code(200)
@@ -312,6 +319,27 @@ public class QuanLyHopDongController {
         }
     }
 
+    @PostMapping("/dichvu/checkyeucau")
+    public ApiResponse<String> checkHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO){
+        try{
+            YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
+            yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
+            if(yeuCauDichVu.getChuKy()!=0){
+                if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Có hợp đồng dịch vụ đang hoạt động").build();
+                }
+            }
+            return ApiResponse.<String>builder().code(200)
+            .result("Hợp lệ").build();
+        }
+        catch(Exception e){
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+    
+
     @PostMapping("/dichvu")
     public ApiResponse<String> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
         try{
@@ -322,6 +350,8 @@ public class QuanLyHopDongController {
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
             if(yeuCauDichVu.getChuKy()!=0){
                 if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+                    System.out.println(yeuCauDichVu.getHopDong().getIdHopDong());
+                    System.out.println(yeuCauDichVu.getDichVu().getIdDichVu());
                     return ApiResponse.<String>builder().code(400)
                     .message("Có hợp đồng dịch vụ đang hoạt động").build();
                 }
@@ -336,10 +366,13 @@ public class QuanLyHopDongController {
                 hopDongService.saveCTYeuCauDichVu(chiTietYeuCauDichVu);
             } 
             if(hopDongService.isExistsDichVuById(yeuCauDichVu.getIdYeuCauDichVu())){
-                HoaDon hoaDon = new HoaDon();
+                HoaDon hoaDon = hoaDonService.findById(yeuCauDichVuDTO.getSoHoaDon());
+                if(hoaDon==null){
+                    return ApiResponse.<String>builder().code(404)
+                    .message("Không tìm thấy hóa đơn").build();
+                }
                 hoaDon.setYeuCauDichVu(yeuCauDichVu);
                 hoaDon.setThoiGianDong(getNow());
-                hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
                 hoaDon = hoaDonService.save(hoaDon);
                 if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
                     return ApiResponse.<String>builder().code(200)
@@ -363,8 +396,9 @@ public class QuanLyHopDongController {
     }
 
     //Gia hạn
-    @PutMapping("/dichvu/giahan/{id}")
-    public ApiResponse<String> giaHanHopDongDichVu(@PathVariable long id) {
+    @PutMapping("/dichvu/giahan/{id}/{soHoaDon}")
+    public ApiResponse<String> giaHanHopDongDichVu(@PathVariable(value = "id") long id,
+    @PathVariable(value="soHoaDon")long soHoaDon) {
         if (!hopDongService.isExistsDichVuById(id)) {
             return ApiResponse.<String>builder().code(400)
                     .message("Hợp đồng dịch vụ không tồn tại").build();
@@ -373,10 +407,13 @@ public class QuanLyHopDongController {
             YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
             yeuCauDichVu.setThoiHan(plusDay(yeuCauDichVu.getThoiHan(), yeuCauDichVu.getChuKy()));
             yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
-            HoaDon hoaDon = new HoaDon();
+            HoaDon hoaDon = hoaDonService.findById(soHoaDon);
+            if(hoaDon==null){
+                return ApiResponse.<String>builder().code(404)
+                    .message("Không tìm thấy hóa đơn").build();
+            }
             hoaDon.setYeuCauDichVu(yeuCauDichVu);
             hoaDon.setThoiGianDong(getNow());
-            hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
             hoaDon = hoaDonService.save(hoaDon);
             if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
                 return ApiResponse.<String>builder().code(200)

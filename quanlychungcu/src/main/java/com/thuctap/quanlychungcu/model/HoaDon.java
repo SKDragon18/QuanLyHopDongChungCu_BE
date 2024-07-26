@@ -41,4 +41,10 @@ public class HoaDon {
     @JoinColumn(name = "IDYEUCAUDICHVU", nullable = true)
     private YeuCauDichVu yeuCauDichVu;
 
+    @Column(name="THANHTOAN", nullable = false)
+    private Boolean thanhToan;
+
+    @Column(name="VNPCODE", nullable = true)
+    private String vnpCode;
+
 }
