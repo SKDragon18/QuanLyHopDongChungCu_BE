@@ -1,5 +1,7 @@
 package com.thuctap.quanlychungcu.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +17,7 @@ import com.thuctap.quanlychungcu.dto.KhachHangDTO;
 import com.thuctap.quanlychungcu.dto.QuyenDTO;
 import com.thuctap.quanlychungcu.dto.TaiKhoanDTO;
 import com.thuctap.quanlychungcu.model.BanQuanLy;
+import com.thuctap.quanlychungcu.model.HinhAnh;
 import com.thuctap.quanlychungcu.model.KhachHang;
 import com.thuctap.quanlychungcu.model.Quyen;
 import com.thuctap.quanlychungcu.model.TaiKhoan;
@@ -36,9 +39,12 @@ public class TaiKhoanService {
     QuyenService quyenService;
 
     @Autowired
+    HinhAnhService hinhAnhService;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
-    public TaiKhoanDTO mapToTaiKhoanDTO(TaiKhoan taiKhoan){
+    public TaiKhoanDTO mapToTaiKhoanDTO(TaiKhoan taiKhoan, Boolean hasImage){
         if(taiKhoan==null)return null;
         QuyenDTO quyenDTO = quyenService.mapToQuyenDTO(taiKhoan.getQuyen());
         
@@ -49,14 +55,30 @@ public class TaiKhoanService {
             BanQuanLyDTO banQuanLyDTO = banQuanLyService
         .mapToBanQuanLyDTO(banQuanLyService.findById(
             taiKhoan.getTenDangNhap()));
-
-        return TaiKhoanDTO.builder()
+        
+        TaiKhoanDTO taiKhoanDTO = TaiKhoanDTO.builder()
             .tenDangNhap(taiKhoan.getTenDangNhap())
             .quyen(quyenDTO)
             .khoa(taiKhoan.getKhoa())
             .banQuanLy(banQuanLyDTO)
             .khachHang(khachHangDTO)
             .build();
+        if(hasImage){
+            try{
+                List<HinhAnh> hinhAnhList = taiKhoan.getHinhAnhList();
+                List<byte[]> hinhAnhByteList = new ArrayList<>();
+                if(hinhAnhList!=null && hinhAnhList.size()>0){
+                    for(HinhAnh hinhAnh: hinhAnhList){
+                        hinhAnhByteList.add(hinhAnhService.getHinhAnh(hinhAnh));
+                    }
+                }
+                taiKhoanDTO.setHinhAnhList(hinhAnhByteList);
+            }
+            catch(IOException e){
+                System.out.println("Error: "+e.getMessage());
+            }
+        }
+        return taiKhoanDTO;
     }
 
     public TaiKhoan mapToTaiKhoan(TaiKhoanDTO taiKhoanDTO){

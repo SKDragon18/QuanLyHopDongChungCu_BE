@@ -60,20 +60,10 @@ public class QuanLyTaiKhoanController {
     public ApiResponse<List<TaiKhoanDTO>> getAllTaiKhoan(){
         List<TaiKhoan> taiKhoanList = taiKhoanService.findAll();
         List<TaiKhoanDTO> taiKhoanDTOList = taiKhoanList.stream()
-        .map(taiKhoan -> taiKhoanService.mapToTaiKhoanDTO(taiKhoan)).toList();
+        .map(taiKhoan -> taiKhoanService.mapToTaiKhoanDTO(taiKhoan,false)).toList();
         return ApiResponse.<List<TaiKhoanDTO>>builder()
         .result(taiKhoanDTOList).code(200).build();
     }
-
-    // @GetMapping("/{id}")
-    // public ResponseEntity<?> getTaiKhoan(@PathVariable("id") String id){
-    //     TaiKhoan taiKhoan = taiKhoanService.findById(id);
-    //     if(taiKhoan==null){
-    //         return new ResponseEntity<>("Không tìm thấy", HttpStatus.NOT_FOUND);
-    //     }
-    //     TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan);
-    //     return new ResponseEntity<>(taiKhoanDTO,HttpStatus.OK);
-    // }
 
     @PostMapping
     public ApiResponse<String> insertTaiKhoan(@RequestBody DangKyNVDTO dangKyNVDTO){

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.AuthencicationResponse;
@@ -27,6 +28,7 @@ import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.service.AuthenticateService;
 import com.thuctap.quanlychungcu.service.BanQuanLyService;
 import com.thuctap.quanlychungcu.service.EmailService;
+import com.thuctap.quanlychungcu.service.HinhAnhService;
 import com.thuctap.quanlychungcu.service.KhachHangService;
 import com.thuctap.quanlychungcu.service.TaiKhoanService;
 
@@ -34,6 +36,8 @@ import com.thuctap.quanlychungcu.service.TaiKhoanService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController
@@ -52,7 +56,8 @@ public class NguoiDung {
     KhachHangService khachHangService;
     @Autowired
     BanQuanLyService banQuanLyService;
-
+    @Autowired
+    HinhAnhService hinhAnhService;
     @Autowired
     AuthenticateService authenticateService;
     @Autowired
@@ -78,7 +83,7 @@ public class NguoiDung {
             return ApiResponse.<TaiKhoanDTO>builder().code(400)
             .message("Mật khẩu không đúng").build();
         }
-        TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan);
+        TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan,true);
         taiKhoanDTO.setToken(token);
         return ApiResponse.<TaiKhoanDTO>builder().code(200)
             .result(taiKhoanDTO).build();
@@ -242,6 +247,25 @@ public class NguoiDung {
             .result(khachHangDTO).build();
     }
 
+    @PutMapping("/khachhang")
+    public ApiResponse<KhachHangDTO> updateKhachHang(@RequestBody KhachHangDTO khachHangDTO){
+        try{
+            if(!khachHangService.isExistsById(khachHangDTO.getMaKhachHang())){
+                return ApiResponse.<KhachHangDTO>builder().code(404)
+                .message("Không tìm thấy khách hàng").build();
+            }
+            KhachHang khachHang = khachHangService.mapToKhachHang(khachHangDTO);
+            khachHang = khachHangService.save(khachHang);
+            KhachHangDTO khachHangDTO2 = khachHangService.mapToKhachHangDTO(khachHang);
+            return ApiResponse.<KhachHangDTO>builder().code(200)
+            .result(khachHangDTO2).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<KhachHangDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+
     @GetMapping("/banquanly/{id}")
     public ApiResponse<BanQuanLyDTO> getBanQuanLy(@PathVariable("id") String id){
         BanQuanLy banQuanLy = banQuanLyService.findById(id); 
@@ -253,4 +277,39 @@ public class NguoiDung {
         return ApiResponse.<BanQuanLyDTO>builder().code(200)
             .result(banQuanLyDTO).build();
     }
+
+    @GetMapping("/thongtin/{id}")
+    public ApiResponse<TaiKhoanDTO> getTaiKhoan(@PathVariable("id") String id) {
+        TaiKhoan taiKhoan = taiKhoanService.findById(id);
+        if(taiKhoan==null){
+            return ApiResponse.<TaiKhoanDTO>builder().code(404)
+            .message("Không tìm thấy tài khoản").build();
+        }
+        TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan, true);
+        return ApiResponse.<TaiKhoanDTO>builder().code(200)
+        .result(taiKhoanDTO).build();
+    }
+    
+    @PostMapping("/doihinhanh")
+    public ApiResponse<String> changeHinhAnh(@RequestParam("images")MultipartFile[] images, 
+    @RequestParam("tenDangNhap") String tenDangNhap) {
+        try{
+            TaiKhoan taiKhoan = taiKhoanService.findById(tenDangNhap);
+            String result = hinhAnhService.deleteAllAvatar(taiKhoan);
+            if(!result.contains("thành công")){
+                System.out.println(result);
+            }
+            for(MultipartFile image: images){
+                hinhAnhService.downloadHinhAnh(image, taiKhoan, null);
+            }
+            return ApiResponse.<String>builder().code(200)
+            .result("Đổi thành công").build();
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return ApiResponse.<String>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+
 }

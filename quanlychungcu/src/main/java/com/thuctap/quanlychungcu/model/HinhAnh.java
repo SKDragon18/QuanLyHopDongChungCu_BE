@@ -27,8 +27,9 @@ public class HinhAnh {
     @Column(name="DUONGDAN",nullable=false)
     private String duongDan;
 
-    @Column(name="TENDANGNHAP", nullable = true, length = 50)
-    private String tenDangNhap;
+    @ManyToOne
+    @JoinColumn(name = "TENDANGNHAP",nullable = true)
+    private TaiKhoan taiKhoan;
 
     @ManyToOne
     @JoinColumn(name = "IDCANHO",nullable = true)

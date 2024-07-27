@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.thuctap.quanlychungcu.model.CanHo;
 import com.thuctap.quanlychungcu.model.HinhAnh;
+import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.repository.CanHoRepository;
 import com.thuctap.quanlychungcu.repository.HinhAnhRepository;
 
@@ -27,7 +28,7 @@ public class HinhAnhService {
     private final String IMAGE_PATH = "D:\\SpringBoostWorkspace\\QuanLyHopDongDichVuChungCu\\quanlychungcu\\src\\main\\java\\com\\thuctap\\quanlychungcu\\image/";
 
     @Transactional
-    public String downloadHinhAnh(MultipartFile file, String tenDangNhap, CanHo canHo) throws IllegalStateException, IOException{
+    public String downloadHinhAnh(MultipartFile file, TaiKhoan taiKhoan, CanHo canHo) throws IllegalStateException, IOException{
         String uuid = UUID.randomUUID().toString();
         String filePath = IMAGE_PATH+uuid+".jpg";
         
@@ -36,7 +37,7 @@ public class HinhAnhService {
             HinhAnh hinhAnh = new HinhAnh();
             
             hinhAnh.setDuongDan(filePath);
-            hinhAnh.setTenDangNhap(tenDangNhap);
+            hinhAnh.setTaiKhoan(taiKhoan);;
             hinhAnh.setCanHo(canHo);
             hinhAnh=hinhAnhRepository.save(hinhAnh);
             return  "Lưu thành công: " +hinhAnh.getDuongDan();
@@ -50,6 +51,26 @@ public class HinhAnhService {
     @Transactional
     public String deleteAllHinhAnhCanHo(CanHo canHo){
         List<HinhAnh> hinhAnhList = canHo.getHinhAnhList();
+        if(hinhAnhList==null||hinhAnhList.size()<1)return "Không có hình ảnh";
+        try{
+            for(HinhAnh hinhAnh: hinhAnhList){
+                String filePath = hinhAnh.getDuongDan();
+                File file = new File(filePath);
+                if(!file.delete()){
+                    System.out.println("Xóa ảnh thất bại, path: "+filePath);
+                }
+                hinhAnhRepository.delete(hinhAnh);
+            }
+            return "Xóa toàn bộ ảnh thành công";
+        }
+        catch(Exception e){
+            return e.getMessage();
+        }
+    }
+
+    @Transactional
+    public String deleteAllAvatar(TaiKhoan taiKhoan){
+        List<HinhAnh> hinhAnhList = taiKhoan.getHinhAnhList();
         if(hinhAnhList==null||hinhAnhList.size()<1)return "Không có hình ảnh";
         try{
             for(HinhAnh hinhAnh: hinhAnhList){
