@@ -226,6 +226,22 @@ public class HopDongService {
         return hopDongDichVuKhachHangDTO;
     }
 
+    public YeuCauDichVuDTO mapToYeuCauDichVuDTO(YeuCauDichVu yeuCauDichVu){
+        if(yeuCauDichVu==null)return null;
+        HopDongDTO hopDongDTO = mapToHopDongDTO(yeuCauDichVu.getHopDong());
+        DichVuDTO dichVuDTO = dichVuService.mapToDichVuDTO(yeuCauDichVu.getDichVu());
+        return YeuCauDichVuDTO.builder()
+            .idYeuCauDichVu(yeuCauDichVu.getIdYeuCauDichVu())
+            .hopDong(hopDongDTO)
+            .dichVu(dichVuDTO)
+            .giaTra(yeuCauDichVu.getGiaTra())
+            .ngayYeuCau(yeuCauDichVu.getNgayYeuCau())
+            .thoiHan(yeuCauDichVu.getThoiHan())
+            .chuKy(yeuCauDichVu.getChuKy())
+            .trangThai(yeuCauDichVu.getTrangThai())
+            .build();
+    }
+
     public YeuCauDichVu mapToYeuCauDichVu(YeuCauDichVuDTO yeuCauDichVuDTO){
         if(yeuCauDichVuDTO==null)return null;
         HopDong hopDong = null;

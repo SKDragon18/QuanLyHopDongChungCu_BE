@@ -1,5 +1,6 @@
 package com.thuctap.quanlychungcu.controller;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.DieuKhoanDTO;
@@ -19,6 +22,7 @@ import com.thuctap.quanlychungcu.dto.HoaDonDTO;
 import com.thuctap.quanlychungcu.dto.HopDongDTO;
 import com.thuctap.quanlychungcu.dto.HopDongDichVuKhachHangDTO;
 import com.thuctap.quanlychungcu.dto.HopDongKhachHangDTO;
+import com.thuctap.quanlychungcu.dto.ThanhToanDTO;
 import com.thuctap.quanlychungcu.dto.YeuCauDichVuDTO;
 import com.thuctap.quanlychungcu.model.CTDKCanHo;
 import com.thuctap.quanlychungcu.model.CTDKDichVu;
@@ -34,8 +38,10 @@ import com.thuctap.quanlychungcu.service.DieuKhoanService;
 import com.thuctap.quanlychungcu.service.HoaDonService;
 import com.thuctap.quanlychungcu.service.HopDongService;
 import com.thuctap.quanlychungcu.service.KhachHangService;
+import com.thuctap.quanlychungcu.service.ThanhToanService;
 import com.thuctap.quanlychungcu.service.YeuCauDichVuService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,6 +67,9 @@ public class QuanLyHopDongController {
 
     @Autowired
     DieuKhoanService dieuKhoanService;
+
+    @Autowired
+    ThanhToanService thanhToanService;
 
     public Timestamp getNow(){
         Date date = new Date();
@@ -144,8 +153,7 @@ public class QuanLyHopDongController {
                 .result(hopDongDTO).build();
     }
 
-    @PostMapping
-    public ApiResponse<String> insertHopDong(@RequestBody HopDongDTO hopDongDTO) {
+    public ApiResponse<String> insertHopDong(HopDongDTO hopDongDTO) {
         
         try{
             HopDong hopDong = hopDongService.mapToHopDong(hopDongDTO);
@@ -165,13 +173,10 @@ public class QuanLyHopDongController {
                 hopDongService.saveCTHopDong(chiTietHopDong);
             } 
             if(hopDongService.isExistsById(hopDong.getIdHopDong())){
-                HoaDon hoaDon = hoaDonService.findById(hopDongDTO.getSoHoaDon());
-                if(hoaDon==null){
-                    return ApiResponse.<String>builder().code(404)
-                    .message("Không tìm thấy hóa đơn").build();
-                }
+                HoaDon hoaDon = new HoaDon();
                 hoaDon.setHopDong(hopDong);
                 hoaDon.setThoiGianDong(getNow());
+                hoaDon.setTongHoaDon(hopDong.getGiaTri());
                 hoaDon = hoaDonService.save(hoaDon);
                 if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
                     return ApiResponse.<String>builder().code(200)
@@ -211,9 +216,7 @@ public class QuanLyHopDongController {
     // }
 
     //Gia hạn
-    @PutMapping("/giahan/{id}/{soHoaDon}")
-    public ApiResponse<String> giaHanHopDong(@PathVariable(value="id") long id,
-     @PathVariable(value = "soHoaDon")long soHoaDon) {
+    public ApiResponse<String> giaHanHopDong(long id) {
         if (!hopDongService.isExistsById(id)) {
             return ApiResponse.<String>builder().code(400)
                     .message("Hợp đồng không tồn tại").build();
@@ -223,11 +226,8 @@ public class QuanLyHopDongController {
             hopDong.setThoiHan(plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
             hopDong=hopDongService.save(hopDong);
 
-            HoaDon hoaDon = hoaDonService.findById(soHoaDon);
-            if(hoaDon==null){
-                return ApiResponse.<String>builder().code(404)
-                    .message("Không tìm thấy hóa đơn").build();
-            }
+            HoaDon hoaDon = new HoaDon();
+            hoaDon.setTongHoaDon(hopDong.getGiaTri());
             hoaDon.setHopDong(hopDong);
             hoaDon.setThoiGianDong(getNow());
             hoaDon = hoaDonService.save(hoaDon);
@@ -340,8 +340,7 @@ public class QuanLyHopDongController {
     }
     
 
-    @PostMapping("/dichvu")
-    public ApiResponse<String> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
+    public ApiResponse<String> insertHopDongDichVu(YeuCauDichVuDTO yeuCauDichVuDTO) {
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
             yeuCauDichVu.setNgayYeuCau(convertToUTC(yeuCauDichVu.getNgayYeuCau()));
@@ -366,12 +365,9 @@ public class QuanLyHopDongController {
                 hopDongService.saveCTYeuCauDichVu(chiTietYeuCauDichVu);
             } 
             if(hopDongService.isExistsDichVuById(yeuCauDichVu.getIdYeuCauDichVu())){
-                HoaDon hoaDon = hoaDonService.findById(yeuCauDichVuDTO.getSoHoaDon());
-                if(hoaDon==null){
-                    return ApiResponse.<String>builder().code(404)
-                    .message("Không tìm thấy hóa đơn").build();
-                }
+                HoaDon hoaDon = new HoaDon();
                 hoaDon.setYeuCauDichVu(yeuCauDichVu);
+                hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
                 hoaDon.setThoiGianDong(getNow());
                 hoaDon = hoaDonService.save(hoaDon);
                 if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
@@ -396,9 +392,7 @@ public class QuanLyHopDongController {
     }
 
     //Gia hạn
-    @PutMapping("/dichvu/giahan/{id}/{soHoaDon}")
-    public ApiResponse<String> giaHanHopDongDichVu(@PathVariable(value = "id") long id,
-    @PathVariable(value="soHoaDon")long soHoaDon) {
+    public ApiResponse<String> giaHanHopDongDichVu(long id) {
         if (!hopDongService.isExistsDichVuById(id)) {
             return ApiResponse.<String>builder().code(400)
                     .message("Hợp đồng dịch vụ không tồn tại").build();
@@ -407,12 +401,9 @@ public class QuanLyHopDongController {
             YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
             yeuCauDichVu.setThoiHan(plusDay(yeuCauDichVu.getThoiHan(), yeuCauDichVu.getChuKy()));
             yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
-            HoaDon hoaDon = hoaDonService.findById(soHoaDon);
-            if(hoaDon==null){
-                return ApiResponse.<String>builder().code(404)
-                    .message("Không tìm thấy hóa đơn").build();
-            }
+            HoaDon hoaDon = new HoaDon();
             hoaDon.setYeuCauDichVu(yeuCauDichVu);
+            hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
             hoaDon.setThoiGianDong(getNow());
             hoaDon = hoaDonService.save(hoaDon);
             if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
@@ -448,5 +439,128 @@ public class QuanLyHopDongController {
                     .message(e.getMessage()).build();
         }
     }
+
+    @PostMapping("/hopdong/create-payment")
+    public ApiResponse<?> createHopDongVNPay(HttpServletRequest req,@RequestBody HopDongDTO hopDongDTO) throws UnsupportedEncodingException {
+        if(hopDongDTO==null){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message("Lỗi hợp đồng không có thông tin").build();
+        }
+        try{
+            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "dangky", hopDongDTO, null);
+            return ApiResponse.<ThanhToanDTO>builder().code(200)
+            .result(thanhToanDTO).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+
+    @PostMapping("/yeucaudichvu/create-payment")
+    public ApiResponse<?> createHopDongDichVuVNPay(HttpServletRequest req,@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) throws UnsupportedEncodingException {
+        if(yeuCauDichVuDTO==null){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message("Lỗi hợp đồng không có thông tin").build();
+        }
+        try{
+            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "dangky", null, yeuCauDichVuDTO);
+            return ApiResponse.<ThanhToanDTO>builder().code(200)
+            .result(thanhToanDTO).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+
+    @PostMapping("/giahanhopdong/create-payment/{id}")
+    public ApiResponse<?> createGiaHanHopDongVNPay(HttpServletRequest req,@PathVariable long id) throws UnsupportedEncodingException {
+        HopDong hopDong = hopDongService.findById(id);
+        if(hopDong == null){
+            return ApiResponse.<String>builder().code(404)
+            .message("Không tìm thấy").build();
+        }
+        try{
+            HopDongDTO hopDongDTO = hopDongService.mapToHopDongDTO(hopDong);
+            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "giahan", hopDongDTO, null);
+            return ApiResponse.<ThanhToanDTO>builder().code(200)
+            .result(thanhToanDTO).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+
+    @PostMapping("/giahanyeucaudichvu/create-payment/{id}")
+    public ApiResponse<?> createGiaHanHopDongDichVuVNPay(HttpServletRequest req,@PathVariable long id) throws UnsupportedEncodingException {
+        YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
+        if(yeuCauDichVu == null){
+            return ApiResponse.<String>builder().code(404)
+            .message("Không tìm thấy").build();
+        }
+        try{
+            YeuCauDichVuDTO yeuCauDichVuDTO = hopDongService.mapToYeuCauDichVuDTO(yeuCauDichVu);
+            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "giahan", null, yeuCauDichVuDTO);
+            return ApiResponse.<ThanhToanDTO>builder().code(200)
+            .result(thanhToanDTO).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+
+    @GetMapping("/payment_infor")
+    public ApiResponse<?> getInforPayment(
+        @RequestParam("vnp_TxnRef")String vnp_TxnRef,
+        @RequestParam("vnp_ResponseCode")String vnp_ResponseCode,
+        @RequestParam("vnp_TransactionNo")String vnp_TransactionNo) 
+    {   
+        try{
+        //Trường hợp thành công
+            if(vnp_ResponseCode.equals("00")){
+                ThanhToanDTO thanhToanDTO = thanhToanService.getThanhToanDTO(vnp_TxnRef);
+                System.out.println("Size: ");
+                System.out.println(thanhToanService.getSizeGiaoDich());
+                ApiResponse<String> response = new ApiResponse<>();
+                if(thanhToanDTO.getLoaiGiaoDich().equals("dangky")){
+                    if(thanhToanDTO.getHopDong()!=null){
+                        response = insertHopDong(thanhToanDTO.getHopDong());
+                    }
+                    else if(thanhToanDTO.getYeuCauDichVu()!=null){
+                        response = insertHopDongDichVu(thanhToanDTO.getYeuCauDichVu());
+                    } 
+                }
+                else if(thanhToanDTO.getLoaiGiaoDich().equals("giahan")){
+                    if(thanhToanDTO.getHopDong()!=null){
+                        response = giaHanHopDong(thanhToanDTO.getHopDong().getIdHopDong());
+                    }
+                    else if(thanhToanDTO.getYeuCauDichVu()!=null){
+                        response = giaHanHopDongDichVu(thanhToanDTO.getYeuCauDichVu().getIdYeuCauDichVu());
+                    } 
+                }
+                thanhToanService.removeThanhToan(vnp_TxnRef);
+                // if(response.getCode()==200){
+                //     System.out.println(response.getResult());
+                // }
+                // else{
+                //     System.out.println(response.getMessage());
+                // }
+                // return RedirectView("")
+                return response;
+            }
+            else{//Hủy hoặc thất bại
+                thanhToanService.removeThanhToan(vnp_TxnRef);
+                return ApiResponse.<String>builder().code(400)
+                .message("Thất bại").build();
+            }
+        }catch(Exception e){
+            return ApiResponse.<String>builder().code(400)
+                .message("Lỗi: "+ e.getMessage()).build();
+        }
+    }
+
 
 }

@@ -36,9 +36,13 @@ import com.thuctap.quanlychungcu.config.VNPayConfig;
 import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.CheckReponse;
 import com.thuctap.quanlychungcu.dto.HoaDonDTO;
+import com.thuctap.quanlychungcu.dto.HopDongDTO;
 import com.thuctap.quanlychungcu.dto.PaymentDTO;
+import com.thuctap.quanlychungcu.dto.ThanhToanDTO;
+import com.thuctap.quanlychungcu.dto.YeuCauDichVuDTO;
 import com.thuctap.quanlychungcu.model.HoaDon;
 import com.thuctap.quanlychungcu.service.HoaDonService;
+import com.thuctap.quanlychungcu.service.ThanhToanService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -54,7 +58,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class QuanLyHoaDonController {
     @Autowired
     HoaDonService hoaDonService;
-
+    @Autowired
+    ThanhToanService thanhToanService;
     public Timestamp getNow(){
         Date date = new Date();
         return new Timestamp(date.getTime());
@@ -120,134 +125,24 @@ public class QuanLyHoaDonController {
         }
     }
 
-    @PostMapping("/create-payment")
-    public ApiResponse<?> createVNPay(HttpServletRequest req,@RequestBody String amount) throws UnsupportedEncodingException {
-        try{
-            String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
-            String vnp_IpAddr = VNPayConfig.getIpAddress(req);
-            String vnp_TmnCode = VNPayConfig.vnp_TmnCode;
-            String vnp_Version = VNPayConfig.vnp_Version;
-            String vnp_Command = VNPayConfig.vnp_Command;
-            long money = Integer.parseInt(amount)*100;
-
-            Map<String, String> vnp_Params = new HashMap<>();
-            vnp_Params.put("vnp_Version", vnp_Version);
-            vnp_Params.put("vnp_Command", vnp_Command);
-            vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-            vnp_Params.put("vnp_Amount", String.valueOf(money));
-            vnp_Params.put("vnp_CurrCode", "VND");
-            vnp_Params.put("vnp_BankCode", "NCB");
-            vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-            vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
-            vnp_Params.put("vnp_OrderType", "other");
-            vnp_Params.put("vnp_Locale", "vn");
-            vnp_Params.put("vnp_ReturnUrl", VNPayConfig.vnp_ReturnUrl);
-            vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-
-            Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-            String vnp_CreateDate = formatter.format(cld.getTime());
-            vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
-            
-            cld.add(Calendar.MINUTE, 15);
-            String vnp_ExpireDate = formatter.format(cld.getTime());
-            vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
-            
-            //Mã hóa chuỗi thông tin
-            List fieldNames = new ArrayList(vnp_Params.keySet());
-            Collections.sort(fieldNames);
-            StringBuilder hashData = new StringBuilder();
-            StringBuilder query = new StringBuilder();
-            Iterator itr = fieldNames.iterator();
-            while (itr.hasNext()) {
-                String fieldName = (String) itr.next();
-                String fieldValue = (String) vnp_Params.get(fieldName);
-                if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                    //Build hash data
-                    hashData.append(fieldName);
-                    hashData.append('=');
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                    //Build query
-                    query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
-                    query.append('=');
-                    query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                    if (itr.hasNext()) {
-                        query.append('&');
-                        hashData.append('&');
-                    }
-                }
-            }
-            String queryUrl = query.toString();
-            String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.secretKey, hashData.toString());
-            queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-            String paymentUrl = VNPayConfig.vnp_PayUrl + "?" + queryUrl;
-
-            HoaDon hoaDon = HoaDon.builder()
-            .tongHoaDon(new BigDecimal(amount))
-            .thoiGianDong(getNow())
-            .thanhToan(false)
-            .vnpCode(vnp_TxnRef)
-            .build();
-            hoaDon=hoaDonService.save(hoaDon);
-            if(!hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-                return ApiResponse.<PaymentDTO>builder().code(400)
-                .message("Không thể tạo hóa đơn").build();
-            }
-            return ApiResponse.<PaymentDTO>builder().code(200)
-            .result(new PaymentDTO(hoaDon.getSoHoaDon(),paymentUrl,vnp_TxnRef,vnp_CreateDate)).build();
-        }
-        catch(Exception e){
-            return ApiResponse.<String>builder().code(400)
-            .message("Lỗi tạo đơn thanh toán VNPay: "+e.getMessage()).build();
-        }
-    }
-
-    @GetMapping("/payment_infor")
-    public ApiResponse<?> getInforPayment(
-        @RequestParam("vnp_TxnRef")String vnp_TxnRef,
-        @RequestParam("vnp_ResponseCode")String vnp_ResponseCode,
-        @RequestParam("vnp_TransactionNo")String vnp_TransactionNo) 
-    {   
-        try{
-            HoaDon hoaDon = hoaDonService.findByVnpCode(vnp_TxnRef);
-            if(hoaDon==null){
-                return ApiResponse.<String>builder().code(400)
-                .message("Không tìm thấy hóa đơn").build();
-            }
-            if(vnp_ResponseCode.equals("00")){
-                hoaDon.setThanhToan(true);
-                hoaDonService.save(hoaDon);
-                return ApiResponse.<String>builder().code(200)
-                .result("Thành công").build();
-            }
-            else{
-                hoaDonService.deleteById(hoaDon.getSoHoaDon());
-                return ApiResponse.<String>builder().code(400)
-                .message("Thất bại").build();
-            }
-        }catch(Exception e){
-            return ApiResponse.<String>builder().code(400)
-                .message("Lỗi: "+ e.getMessage()).build();
-        }
-    }
-
-    @GetMapping("/check-payment/{id}")
-    public ApiResponse<?> getInforPayment(@PathVariable long id) 
-    {
-        HoaDon hoaDon = hoaDonService.findById(id);
-        if(hoaDon==null){
-            return ApiResponse.<String>builder().code(400)
-            .message("Hóa đơn không tồn tại").build();
-        }
-        if(hoaDon.getThanhToan()){
-            return ApiResponse.<String>builder().code(200)
-            .result("1").build();
-        }
-        else{
-            return ApiResponse.<String>builder().code(400)
-            .message("Hóa đơn chưa thanh toán").build();
-        }
-    }
+    
+    // @GetMapping("/check-payment/{id}")
+    // public ApiResponse<?> getInforPayment(@PathVariable long id) 
+    // {
+    //     HoaDon hoaDon = hoaDonService.findById(id);
+    //     if(hoaDon==null){
+    //         return ApiResponse.<String>builder().code(400)
+    //         .message("Hóa đơn không tồn tại").build();
+    //     }
+    //     if(hoaDon.getThanhToan()){
+    //         return ApiResponse.<String>builder().code(200)
+    //         .result("1").build();
+    //     }
+    //     else{
+    //         return ApiResponse.<String>builder().code(400)
+    //         .message("Hóa đơn chưa thanh toán").build();
+    //     }
+    // }
     
     @PostMapping("/checkpayment")
     public ApiResponse<?> checkPayment(HttpServletRequest req, @RequestBody PaymentDTO paymentDTO) throws IOException {

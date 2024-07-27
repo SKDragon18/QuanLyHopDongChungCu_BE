@@ -23,5 +23,4 @@ public class HopDongDTO {
     private int chuKy;
     private Boolean trangThai;
     List<CTHopDongDTO> chiTietHopDongList;
-    private long soHoaDon;
 }
