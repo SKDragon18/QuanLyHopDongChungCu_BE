@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,6 +42,6 @@ public class DichVu {
     @Column(name = "TRANGTHAI", nullable = false)
     private Boolean trangThai;
 
-    @OneToMany(mappedBy = "dichVu")
+    @OneToMany(fetch=FetchType.EAGER,mappedBy = "dichVu")
     List<CTDKDichVu> chiTietDieuKhoanDichVuList;
 }

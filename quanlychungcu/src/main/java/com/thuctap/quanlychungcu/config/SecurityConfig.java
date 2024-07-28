@@ -45,7 +45,7 @@ public class SecurityConfig {
         // .requestMatchers(HttpMethod.POST, "/*/*").permitAll()
         // .requestMatchers(HttpMethod.GET, "/canho/loaiphong").permitAll()
         // .requestMatchers(HttpMethod.GET,"/hoadon/**").hasAnyRole("khachhang","quanly")
-        
+        .requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()
         .requestMatchers(HttpMethod.GET, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.POST, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.PUT, QUANLY_ROLE).hasRole("quanly")

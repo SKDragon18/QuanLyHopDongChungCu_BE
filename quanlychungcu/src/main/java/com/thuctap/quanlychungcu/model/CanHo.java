@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -62,6 +63,6 @@ public class CanHo {
     @OneToMany(mappedBy = "canHo")
     List<HinhAnh> hinhAnhList;
 
-    @OneToMany(mappedBy = "canHo")
+    @OneToMany(fetch=FetchType.EAGER,mappedBy = "canHo")
     List<CTDKCanHo> chiTietDieuKhoanCanHoList;
 }

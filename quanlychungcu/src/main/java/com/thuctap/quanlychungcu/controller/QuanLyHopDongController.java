@@ -141,6 +141,85 @@ public class QuanLyHopDongController {
         }
     }
 
+    @GetMapping("/notifications")
+    public ApiResponse<List<String>> notifyBanQuanLy() {
+        try{
+            List<HopDong> hopDongList = hopDongService.findAll();
+            List<HopDongKhachHangDTO> hopDongDTOList = hopDongList.stream()
+            .map(hopDong -> hopDongService.mapToHopDongKhachHangDTO(hopDong)).toList();
+            List<YeuCauDichVu> hopDongDichVuList = hopDongService.findAllDichVu();
+            List<HopDongDichVuKhachHangDTO> hopDongDichVuDTOList = hopDongDichVuList.stream()
+            .map(yeuCauDichVu -> hopDongService.mapToHopDongDichVuKhachHangDTO(yeuCauDichVu)).toList();
+            List<String> notificationList= new ArrayList<>();
+            if(hopDongDTOList.size()>0){
+                for(HopDongKhachHangDTO x: hopDongDTOList){
+                    if(x.getGiaHan()){
+                        String message = "Hợp đồng căn hộ "+ String.valueOf(x.getIdHopDong())
+                        +" của chủ hộ "+ x.getKhachHang().getTen() +"-"+x.getKhachHang().getMaKhachHang()
+                        +" đã tới hạn thanh toán";
+                        notificationList.add(message);
+                    }
+                }
+            }
+            if(hopDongDichVuDTOList.size()>0){
+                for(HopDongDichVuKhachHangDTO x: hopDongDichVuDTOList){
+                    if(x.getGiaHan()){
+                        String message = "Hợp đồng dịch vụ "+ String.valueOf(x.getIdYeuCauDichVu())
+                        +" của chủ hộ "+ x.getHopDong().getKhachHang().getTen() 
+                        +"-"+x.getHopDong().getKhachHang().getMaKhachHang()
+                        +" đã tới hạn thanh toán";
+                        notificationList.add(message);
+                    }
+                }
+            }
+            return ApiResponse.<List<String>>builder().code(200)
+            .result(notificationList).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<List<String>>builder().code(400)
+                .message(e.getMessage()).build();
+        }    
+    }
+
+    @GetMapping("/notifications/{id}")
+    public ApiResponse<List<String>> notify(@PathVariable String id) {
+        if(!khachHangService.isExistsById(id)){
+            return ApiResponse.<List<String>>builder().code(400)
+                .message("Không tồn tại khách hàng").build();
+        }
+        try{
+            List<HopDong> hopDongList = hopDongService.findAllByMaKhachHang(id);
+            List<HopDongKhachHangDTO> hopDongDTOList = hopDongList.stream()
+            .map(hopDong -> hopDongService.mapToHopDongKhachHangDTO(hopDong)).toList();
+            List<YeuCauDichVu> hopDongDichVuList = hopDongService.findAllDichVuByMaKhachHang(id);
+            List<HopDongDichVuKhachHangDTO> hopDongDichVuDTOList = hopDongDichVuList.stream()
+            .map(yeuCauDichVu -> hopDongService.mapToHopDongDichVuKhachHangDTO(yeuCauDichVu)).toList();
+            List<String> notificationList= new ArrayList<>();
+            if(hopDongDTOList.size()>0){
+                for(HopDongKhachHangDTO x: hopDongDTOList){
+                    if(x.getGiaHan()){
+                        String message = "Hợp đồng căn hộ "+ String.valueOf(x.getIdHopDong())+" đã tới hạn thanh toán";
+                        notificationList.add(message);
+                    }
+                }
+            }
+            if(hopDongDichVuDTOList.size()>0){
+                for(HopDongDichVuKhachHangDTO x: hopDongDichVuDTOList){
+                    if(x.getGiaHan()){
+                        String message = "Hợp đồng dịch vụ "+ String.valueOf(x.getIdYeuCauDichVu())+" đã tới hạn thanh toán";
+                        notificationList.add(message);
+                    }
+                }
+            }
+            return ApiResponse.<List<String>>builder().code(200)
+            .result(notificationList).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<List<String>>builder().code(400)
+                .message(e.getMessage()).build();
+        }    
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<HopDongDTO> getHopDong(@PathVariable("id") long id){
         HopDong hopDong = hopDongService.findById(id);

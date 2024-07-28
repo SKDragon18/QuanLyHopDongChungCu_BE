@@ -28,6 +28,8 @@ import com.thuctap.quanlychungcu.repository.CTHopDongRepository;
 import com.thuctap.quanlychungcu.repository.CTYeuCauDichVuRepository;
 import com.thuctap.quanlychungcu.repository.HopDongRepository;
 import com.thuctap.quanlychungcu.repository.YeuCauDichVuRepository;
+
+import jakarta.transaction.Transactional;
 @Service
 public class HopDongService {
 
@@ -85,7 +87,6 @@ public class HopDongService {
             .trangThai(hopDong.getTrangThai())
             .build();
     }
-
     public HopDongKhachHangDTO mapToHopDongKhachHangDTO(HopDong hopDong){
         if(hopDong==null)return null;
         KhachHangDTO khachHangDTO = khachHangService.mapToKhachHangDTO(hopDong.getKhachHang());
@@ -111,6 +112,7 @@ public class HopDongService {
             try{
                 hopDong.setTrangThai(true);//tự động hủy
                 hopDong = save(hopDong);
+                hopDongKhachHangDTO.setGiaHan(false);
             }
             catch(Exception e){
                 throw new IllegalStateException("Hủy thất bại: " + e);
@@ -215,6 +217,7 @@ public class HopDongService {
             try{
                 yeuCauDichVu.setTrangThai(true);//tự động hủy
                 yeuCauDichVu = saveDichVu(yeuCauDichVu);
+                hopDongDichVuKhachHangDTO.setGiaHan(false);
             }
             catch(Exception e){
                 throw new IllegalStateException("Hủy thất bại: " + e);
