@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 public class BangGiaCTDTO {
     private long idBangGia;
     private String noiDung;
+    private BanQuanLyDTO banQuanLy;
     List<CanHoBangGiaDTO> canHoList;
     List<DichVuBangGiaDTO> dichVuList;
+
 }

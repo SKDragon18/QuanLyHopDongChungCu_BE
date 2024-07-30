@@ -44,15 +44,6 @@ public class DieuKhoanService {
             .build();
     }
 
-    // public List<DieuKhoan> findAllCanHo(CanHo canHo){
-    //     List<DieuKhoan> dieuKhoanList = new ArrayList<>();
-    //     List<CTDKCanHo> chiTietDieuKhoanCanHo = canHo.getChiTietDieuKhoanCanHoList();
-    //     for(CTDKCanHo x: chiTietDieuKhoanCanHo){
-    //         dieuKhoanList.add(x.getDieuKhoan());
-    //     }
-    //     return dieuKhoanList;
-    // }
-
     public List<CTDKCanHo> findAllCTDKCanHo(){
         return chiTietDieuKhoanCanHoRepository.findAll();
     }
@@ -84,8 +75,7 @@ public class DieuKhoanService {
     }
 
     public String generateId(){
-        List<DieuKhoan> dieuKhoanList = findAll();
-        return "DK"+String.valueOf(dieuKhoanList.size()+1);
+        return dieuKhoanRepository.generateMaMoi();
     }
 
     public List<DieuKhoan> findAll(){

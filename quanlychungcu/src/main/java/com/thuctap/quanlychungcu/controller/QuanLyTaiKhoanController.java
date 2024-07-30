@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -197,15 +194,17 @@ public class QuanLyTaiKhoanController {
         .result(quyenDTOList).build();
     }
 
-    // @GetMapping("/quyen/{id}")
-    // public ResponseEntity<?> getQuyen(@PathVariable int id) {
-    //     if (!quyenService.isExistsById(id)) {
-    //         return new ResponseEntity<>("Quyền không tồn tại", HttpStatus.BAD_REQUEST);
-    //     }
-    //     Quyen quyen = quyenService.findById(id);
-    //     QuyenDTO quyenDTO = quyenService.mapToQuyenDTO(quyen);
-    //     return new ResponseEntity<>(quyenDTO, HttpStatus.OK);
-    // }
+    @GetMapping("/quyen/{id}")
+    public ApiResponse<QuyenDTO> getQuyen(@PathVariable int id) {
+        if (!quyenService.isExistsById(id)) {
+            return ApiResponse.<QuyenDTO>builder().code(404)
+            .message("Tìm không thấy quyền").build();
+        }
+        Quyen quyen = quyenService.findById(id);
+        QuyenDTO quyenDTO = quyenService.mapToQuyenDTO(quyen);
+        return ApiResponse.<QuyenDTO>builder().code(200)
+            .result(quyenDTO).build();
+    }
 
     @PostMapping("/quyen")
     public ApiResponse<QuyenDTO> insertQuyen(@RequestBody QuyenDTO quyenDTO) {
@@ -230,36 +229,43 @@ public class QuanLyTaiKhoanController {
     }
      
     @PutMapping("/quyen")
-    public ResponseEntity<?> updateQuyen(@RequestBody QuyenDTO quyenDTO) {
+    public ApiResponse<QuyenDTO> updateQuyen(@RequestBody QuyenDTO quyenDTO) {
         if (!quyenService.isExistsById(quyenDTO.getIdQuyen())) {
-            return new ResponseEntity<>("Quyền không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<QuyenDTO>builder().code(404)
+            .message("Tìm không thấy quyền").build();
         }
         try{
             Quyen quyen = quyenService.mapToQuyen(quyenDTO);
             quyen = quyenService.save(quyen);
             QuyenDTO quyenDTO2 = quyenService.mapToQuyenDTO(quyen);
-            return new ResponseEntity<>(quyenDTO2, HttpStatus.OK);
+            return ApiResponse.<QuyenDTO>builder().code(200)
+            .result(quyenDTO2).build();
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<QuyenDTO>builder().code(400)
+            .message(e.getMessage()).build();
         }
     }
 
     @DeleteMapping("/quyen/{id}")
-    public ResponseEntity<?> deleteQuyen(@PathVariable int id) {
+    public ApiResponse<String> deleteQuyen(@PathVariable int id) {
         if (!quyenService.isExistsById(id)) {
-            return new ResponseEntity<>("Quyền không tồn tại", HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(404)
+            .message("Tìm không thấy quyền").build();
         }
         try{
             quyenService.deleteById(id);
             if (!quyenService.isExistsById(id)) {
-                return new ResponseEntity<>("Xóa thành công", HttpStatus.OK);
+                return ApiResponse.<String>builder().code(200)
+                .result("Xóa thành công").build();
             } else {
-                return new ResponseEntity<>("Xóa thất bại", HttpStatus.BAD_REQUEST);
+                return ApiResponse.<String>builder().code(400)
+                .message("Xóa thất bại").build();
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return ApiResponse.<String>builder().code(400)
+                .message(e.getMessage()).build();
         }
     }
 

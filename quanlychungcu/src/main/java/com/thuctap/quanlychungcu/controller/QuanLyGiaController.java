@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thuctap.quanlychungcu.dto.ApiResponse;
+import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
 import com.thuctap.quanlychungcu.dto.BangGiaCTDTO;
 import com.thuctap.quanlychungcu.dto.BangGiaDTO;
 import com.thuctap.quanlychungcu.dto.CanHoBangGiaDTO;
@@ -24,6 +25,7 @@ import com.thuctap.quanlychungcu.model.GiaCanHo;
 import com.thuctap.quanlychungcu.model.GiaCanHoPK;
 import com.thuctap.quanlychungcu.model.GiaDichVu;
 import com.thuctap.quanlychungcu.model.GiaDichVuPK;
+import com.thuctap.quanlychungcu.service.BanQuanLyService;
 import com.thuctap.quanlychungcu.service.BangGiaService;
 import com.thuctap.quanlychungcu.service.CanHoService;
 import com.thuctap.quanlychungcu.service.DichVuService;
@@ -47,6 +49,9 @@ public class QuanLyGiaController {
 
     @Autowired
     DichVuService dichVuService;
+
+    @Autowired
+    BanQuanLyService banQuanLyService;
 
     public Timestamp convertToUTC(Timestamp time){
         LocalDateTime localDateTime = time.toLocalDateTime();
@@ -77,6 +82,10 @@ public class QuanLyGiaController {
         bangGiaCTDTO.setNoiDung(bangGia.getNoiDung());
         bangGiaCTDTO.setCanHoList(canHoList);
         bangGiaCTDTO.setDichVuList(dichVuList);
+        if(bangGia.getBanQuanLy()!=null){
+            BanQuanLyDTO banQuanLy = banQuanLyService.mapToBanQuanLyDTO(bangGia.getBanQuanLy());
+            bangGiaCTDTO.setBanQuanLy(banQuanLy);
+        }
         return ApiResponse.<BangGiaCTDTO>builder().code(200)
         .result(bangGiaCTDTO).build();
     }

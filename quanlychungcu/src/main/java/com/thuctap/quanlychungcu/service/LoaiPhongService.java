@@ -26,6 +26,7 @@ public class LoaiPhongService {
     public LoaiPhong mapToLoaiPhong(LoaiPhongDTO loaiPhongDTO){
         if(loaiPhongDTO==null)return null;
         return LoaiPhong.builder()
+            .idLoaiPhong(loaiPhongDTO.getIdLoaiPhong())
             .tenLoaiPhong(loaiPhongDTO.getTenLoaiPhong())
             .build();
     }
