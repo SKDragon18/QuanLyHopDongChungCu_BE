@@ -104,26 +104,26 @@ public class QuanLyHoaDonController {
     }
     
 
-    @PostMapping
-    public ApiResponse<HoaDonDTO> insertHoaDon(@RequestBody HoaDonDTO hoaDonDTO) {
-        HoaDon hoaDon = hoaDonService.mapToHoaDon(hoaDonDTO);
-        try{
-            hoaDon = hoaDonService.save(hoaDon);
-            if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-                HoaDonDTO hoaDonDTO2 = hoaDonService.mapToHoaDonDTO(hoaDon);
-                return ApiResponse.<HoaDonDTO>builder().code(200)
-                .result(hoaDonDTO2).build();
-            }
-            else{
-                return ApiResponse.<HoaDonDTO>builder().code(400)
-                .message("Thêm thất bại").build();
-            }
-        }
-        catch(Exception e){
-            return ApiResponse.<HoaDonDTO>builder().code(400)
-                .message(e.getMessage()).build();
-        }
-    }
+    // @PostMapping
+    // public ApiResponse<HoaDonDTO> insertHoaDon(@RequestBody HoaDonDTO hoaDonDTO) {
+    //     HoaDon hoaDon = hoaDonService.mapToHoaDon(hoaDonDTO);
+    //     try{
+    //         hoaDon = hoaDonService.save(hoaDon);
+    //         if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
+    //             HoaDonDTO hoaDonDTO2 = hoaDonService.mapToHoaDonDTO(hoaDon);
+    //             return ApiResponse.<HoaDonDTO>builder().code(200)
+    //             .result(hoaDonDTO2).build();
+    //         }
+    //         else{
+    //             return ApiResponse.<HoaDonDTO>builder().code(400)
+    //             .message("Thêm thất bại").build();
+    //         }
+    //     }
+    //     catch(Exception e){
+    //         return ApiResponse.<HoaDonDTO>builder().code(400)
+    //             .message(e.getMessage()).build();
+    //     }
+    // }
 
     
     // @GetMapping("/check-payment/{id}")

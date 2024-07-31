@@ -592,7 +592,7 @@ public class QuanLyHopDongController {
     }
 
     @GetMapping("/payment_infor")
-    public ApiResponse<?> getInforPayment(
+    public RedirectView getInforPayment(
         @RequestParam("vnp_TxnRef")String vnp_TxnRef,
         @RequestParam("vnp_ResponseCode")String vnp_ResponseCode,
         @RequestParam("vnp_TransactionNo")String vnp_TransactionNo) 
@@ -621,23 +621,23 @@ public class QuanLyHopDongController {
                     } 
                 }
                 thanhToanService.removeThanhToan(vnp_TxnRef);
-                // if(response.getCode()==200){
-                //     System.out.println(response.getResult());
-                // }
-                // else{
-                //     System.out.println(response.getMessage());
-                // }
-                // return RedirectView("")
-                return response;
+                if(response.getCode()==200){
+                    System.out.println(response.getResult());
+                    return new RedirectView("http://localhost:5173/success");
+                }
+                else{
+                    System.out.println(response.getMessage());
+                    return new RedirectView("http://localhost:5173/fail");
+                }
+                
             }
             else{//Hủy hoặc thất bại
                 thanhToanService.removeThanhToan(vnp_TxnRef);
-                return ApiResponse.<String>builder().code(400)
-                .message("Thất bại").build();
+                return new RedirectView("http://localhost:5173/fail");
             }
         }catch(Exception e){
-            return ApiResponse.<String>builder().code(400)
-                .message("Lỗi: "+ e.getMessage()).build();
+            System.out.println(e.getMessage());
+            return new RedirectView("http://localhost:5173/fail");
         }
     }
 

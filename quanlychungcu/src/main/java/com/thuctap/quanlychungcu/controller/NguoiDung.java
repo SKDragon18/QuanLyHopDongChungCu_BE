@@ -74,6 +74,10 @@ public class NguoiDung {
             .message("Vui lòng nhập mật khẩu").build();
         }
         TaiKhoan taiKhoan = taiKhoanService.findById(dangNhapDTO.getTenDangNhap());
+        if(taiKhoan==null){
+            return ApiResponse.<TaiKhoanDTO>builder().code(404)
+            .message("Tài khoản không được tìm thấy").build();
+        }
         if(taiKhoan.getKhoa()){
             return ApiResponse.<TaiKhoanDTO>builder().code(403)
             .message("Tài khoản đã bị khóa").build();
@@ -178,7 +182,7 @@ public class NguoiDung {
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         TaiKhoan taiKhoan = taiKhoanService.findById(id);
         if(taiKhoan==null){
-            return ApiResponse.<String>builder().code(400)
+            return ApiResponse.<String>builder().code(404)
                 .message("Không tìm thấy tài khoản").build();
         }
         String email=null;
@@ -223,7 +227,7 @@ public class NguoiDung {
             doiMatKhauDTO.getMatKhauMoi(), taiKhoan);
             if(taiKhoan==null){
                 return ApiResponse.<String>builder().code(400)
-                    .message("Lỗi hệ thống").build();
+                    .message("Mật khẩu không đúng").build();
             }
             return ApiResponse.<String>builder().code(200)
                     .result("Đổi mật khẩu thành công").build();
@@ -295,6 +299,10 @@ public class NguoiDung {
     @RequestParam("tenDangNhap") String tenDangNhap) {
         try{
             TaiKhoan taiKhoan = taiKhoanService.findById(tenDangNhap);
+            if(taiKhoan==null){
+                return ApiResponse.<String>builder().code(404)
+                .message("Không tìm thấy tài khoản").build();
+            }
             String result = hinhAnhService.deleteAllAvatar(taiKhoan);
             if(!result.contains("thành công")){
                 System.out.println(result);

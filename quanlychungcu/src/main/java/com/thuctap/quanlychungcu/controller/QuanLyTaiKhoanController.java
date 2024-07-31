@@ -269,17 +269,17 @@ public class QuanLyTaiKhoanController {
         }
     }
 
-    @GetMapping("/banquanly/{id}")
-    public ApiResponse<BanQuanLyDTO> getBanQuanLy(@PathVariable("id") String id){
-        BanQuanLy banQuanLy = banQuanLyService.findById(id); 
-        if(banQuanLy==null){
-            return ApiResponse.<BanQuanLyDTO>builder().code(404)
-            .message("Không tìm thấy thông tin").build();
-        }
-        BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(banQuanLy);
-        return ApiResponse.<BanQuanLyDTO>builder().code(200)
-            .result(banQuanLyDTO).build();
-    }
+    // @GetMapping("/banquanly/{id}")
+    // public ApiResponse<BanQuanLyDTO> getBanQuanLy(@PathVariable("id") String id){
+    //     BanQuanLy banQuanLy = banQuanLyService.findById(id); 
+    //     if(banQuanLy==null){
+    //         return ApiResponse.<BanQuanLyDTO>builder().code(404)
+    //         .message("Không tìm thấy thông tin").build();
+    //     }
+    //     BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(banQuanLy);
+    //     return ApiResponse.<BanQuanLyDTO>builder().code(200)
+    //         .result(banQuanLyDTO).build();
+    // }
 
     @PutMapping("/banquanly")
     public ApiResponse<BanQuanLyDTO> updateBanQuanLy(@RequestBody BanQuanLyDTO banQuanLyDTO){
