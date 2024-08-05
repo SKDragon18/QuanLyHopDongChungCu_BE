@@ -32,10 +32,12 @@ public class HoaDonService {
 
         return HoaDonDTO.builder()
             .soHoaDon(hoaDon.getSoHoaDon())
+            .thoiGianTao(hoaDon.getThoiGianTao())
             .thoiGianDong(hoaDon.getThoiGianDong())
             .tongHoaDon(hoaDon.getTongHoaDon())
             .hopDong(hopDongDTO)
             .yeuCauDichVu(yeuCauDichVuDTO)
+            .trangThai(hoaDon.getTrangThai())
             .build();
     }
 
@@ -54,10 +56,12 @@ public class HoaDonService {
         
         return HoaDon.builder()
             .soHoaDon(hoaDonDTO.getSoHoaDon())
+            .thoiGianTao(hoaDonDTO.getThoiGianTao())
             .thoiGianDong(hoaDonDTO.getThoiGianDong())
             .tongHoaDon(hoaDonDTO.getTongHoaDon())
             .hopDong(hopDong)
             .yeuCauDichVu(yeuCauDichVu)
+            .trangThai(hoaDonDTO.getTrangThai())
             .build();
     }
 

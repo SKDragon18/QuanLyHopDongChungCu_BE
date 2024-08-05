@@ -61,6 +61,7 @@ public class CanHoService {
             .giaThue(canHo.getGiaThue())
             .trangThai(canHo.getTrangThai())
             .chuKy(canHo.getChuKy())
+            .chuKyDong(canHo.getChuKyDong())
             .dieuKhoanList(dieuKhoanDTOList)
             .build();
         if(hasImage){
@@ -100,6 +101,7 @@ public class CanHoService {
             .giaThue(canHoDTO.getGiaThue())
             .trangThai(canHoDTO.getTrangThai())
             .chuKy(canHoDTO.getChuKy())
+            .chuKyDong(canHoDTO.getChuKyDong())
             .build();
     }
 

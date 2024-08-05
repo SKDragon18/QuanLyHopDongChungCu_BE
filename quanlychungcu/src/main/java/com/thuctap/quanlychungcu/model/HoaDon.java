@@ -27,11 +27,17 @@ public class HoaDon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long soHoaDon;
 
-    @Column(name="THOIGIANDONG",nullable = false)
+    @Column(name="THOIGIANTAO",nullable = false)
+    private Timestamp thoiGianTao;
+
+    @Column(name="THOIGIANDONG",nullable = true)
     private Timestamp thoiGianDong;
 
     @Column(name="TONGHOADON", nullable = false)
     private BigDecimal tongHoaDon;
+
+    @Column(name="TRANGTHAI", nullable = false)
+    private Boolean trangThai;
 
     @ManyToOne
     @JoinColumn(name = "IDHOPDONG", nullable = true)

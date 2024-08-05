@@ -232,16 +232,25 @@ public class QuanLyHopDongController {
                 .result(hopDongDTO).build();
     }
 
-    public ApiResponse<String> insertHopDong(HopDongDTO hopDongDTO) {
+    @PostMapping
+    public ApiResponse<String> insertHopDong(@RequestBody HopDongDTO hopDongDTO) {
         
         try{
             HopDong hopDong = hopDongService.mapToHopDong(hopDongDTO);
-            // hopDong.setNgayLap(getNow());
-            // hopDong.setNgayLap(convertToUTC(hopDong.getNgayLap()));
+            System.out.println("/////////////////");
+            System.out.println(hopDongDTO.toString());
+            System.out.println("/////////////////");
+            System.out.println(hopDong.toString());
+            System.out.println("/////////////////");
+            hopDong.setNgayLap(convertToUTC(hopDong.getNgayLap()));
             hopDong.setNgayBatDau(convertToUTC(hopDong.getNgayBatDau()));
             hopDong.setThoiHan(convertToUTC(hopDong.getThoiHan()));
-            hopDong.setTrangThai(false);
+            hopDong.setThoiGianDong(convertToUTC(hopDong.getThoiGianDong()));
+            hopDong.setTrangThai(true);
             hopDong.setChuKy(hopDong.getCanHo().getChuKy());
+            hopDong.setChuKyDong(hopDong.getCanHo().getChuKyDong());
+            hopDong.setYeuCau(0);
+            hopDong.setDuyet(0);
             hopDong = hopDongService.save(hopDong);
             CanHo canHo = hopDong.getCanHo();
             List<CTDKCanHo> chiTietDieuKhoanCanHoList = canHo.getChiTietDieuKhoanCanHoList();
@@ -252,19 +261,8 @@ public class QuanLyHopDongController {
                 hopDongService.saveCTHopDong(chiTietHopDong);
             } 
             if(hopDongService.isExistsById(hopDong.getIdHopDong())){
-                HoaDon hoaDon = new HoaDon();
-                hoaDon.setHopDong(hopDong);
-                hoaDon.setThoiGianDong(getNow());
-                hoaDon.setTongHoaDon(hopDong.getGiaTri());
-                hoaDon = hoaDonService.save(hoaDon);
-                if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-                    return ApiResponse.<String>builder().code(200)
+                return ApiResponse.<String>builder().code(200)
                     .result("Đăng ký thành công").build();
-                }
-                else{
-                    return ApiResponse.<String>builder().code(200)
-                    .result("Đăng ký thành công, thanh toán thất bại").build();
-                }
             }
             else{
                 return ApiResponse.<String>builder().code(400)
@@ -295,28 +293,19 @@ public class QuanLyHopDongController {
     // }
 
     //Gia hạn
-    public ApiResponse<String> giaHanHopDong(long id) {
+    @PutMapping("/giahan/{id}")
+    public ApiResponse<String> giaHanHopDong(@PathVariable long id) {
         if (!hopDongService.isExistsById(id)) {
             return ApiResponse.<String>builder().code(400)
                     .message("Hợp đồng không tồn tại").build();
         }
         try{
             HopDong hopDong = hopDongService.findById(id);
-            hopDong.setThoiHan(plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
+            hopDong.setYeuCau(1);
+            hopDong.setDuyet(0);
             hopDong=hopDongService.save(hopDong);
-
-            HoaDon hoaDon = new HoaDon();
-            hoaDon.setTongHoaDon(hopDong.getGiaTri());
-            hoaDon.setHopDong(hopDong);
-            hoaDon.setThoiGianDong(getNow());
-            hoaDon = hoaDonService.save(hoaDon);
-            if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
-                return ApiResponse.<String>builder().code(200)
-                    .result("Gia hạn thành công").build();
-            } else {
-                return ApiResponse.<String>builder().code(400)
-                    .message("Gia hạn thất bại").build();
-            }
+            return ApiResponse.<String>builder().code(200)
+            .result("Đã gửi yêu cầu gia hạn").build();
         }
         catch(Exception e){
             return ApiResponse.<String>builder().code(400)
@@ -333,10 +322,11 @@ public class QuanLyHopDongController {
         }
         try{
             HopDong hopDong = hopDongService.findById(id);
-            hopDong.setTrangThai(true);
+            hopDong.setYeuCau(2);
+            hopDong.setDuyet(0);
             hopDong=hopDongService.save(hopDong);
             return ApiResponse.<String>builder().code(200)
-                    .result("Hủy thành công, bạn vẫn có thể sử dụng căn hộ trước thời hạn").build();
+                    .result("Đã gửi yêu cầu hủy").build();
         }
         catch(Exception e){
             return ApiResponse.<String>builder().code(400)
@@ -417,15 +407,17 @@ public class QuanLyHopDongController {
             .message(e.getMessage()).build();
         }
     }
-    
 
-    public ApiResponse<String> insertHopDongDichVu(YeuCauDichVuDTO yeuCauDichVuDTO) {
+    @PostMapping("/dichvu")
+    public ApiResponse<String> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
             yeuCauDichVu.setNgayYeuCau(convertToUTC(yeuCauDichVu.getNgayYeuCau()));
             yeuCauDichVu.setThoiHan(convertToUTC(yeuCauDichVu.getThoiHan()));
-            yeuCauDichVu.setTrangThai(false);
+            yeuCauDichVu.setTrangThai(true);
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
+            yeuCauDichVu.setDuyet(0);
+            yeuCauDichVu.setYeuCau(0);
             if(yeuCauDichVu.getChuKy()!=0){
                 if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
                     System.out.println(yeuCauDichVu.getHopDong().getIdHopDong());
@@ -444,19 +436,8 @@ public class QuanLyHopDongController {
                 hopDongService.saveCTYeuCauDichVu(chiTietYeuCauDichVu);
             } 
             if(hopDongService.isExistsDichVuById(yeuCauDichVu.getIdYeuCauDichVu())){
-                HoaDon hoaDon = new HoaDon();
-                hoaDon.setYeuCauDichVu(yeuCauDichVu);
-                hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
-                hoaDon.setThoiGianDong(getNow());
-                hoaDon = hoaDonService.save(hoaDon);
-                if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-                    return ApiResponse.<String>builder().code(200)
+                return ApiResponse.<String>builder().code(200)
                     .result("Đăng ký thành công").build();
-                }
-                else{
-                    return ApiResponse.<String>builder().code(200)
-                    .result("Đăng ký thành công, thanh toán thất bại").build();
-                }
             }
             else{
                 return ApiResponse.<String>builder().code(200)
@@ -470,37 +451,28 @@ public class QuanLyHopDongController {
         }
     }
 
-    //Gia hạn
-    public ApiResponse<String> giaHanHopDongDichVu(long id) {
-        if (!hopDongService.isExistsDichVuById(id)) {
-            return ApiResponse.<String>builder().code(400)
-                    .message("Hợp đồng dịch vụ không tồn tại").build();
-        }
-        try{
-            YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
-            yeuCauDichVu.setThoiHan(plusDay(yeuCauDichVu.getThoiHan(), yeuCauDichVu.getChuKy()));
-            yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
-            HoaDon hoaDon = new HoaDon();
-            hoaDon.setYeuCauDichVu(yeuCauDichVu);
-            hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
-            hoaDon.setThoiGianDong(getNow());
-            hoaDon = hoaDonService.save(hoaDon);
-            if (hoaDonService.isExistsById(hoaDon.getSoHoaDon())) {
-                return ApiResponse.<String>builder().code(200)
-                    .result("Gia hạn thành công").build();
-            } else {
-                return ApiResponse.<String>builder().code(400)
-                    .message("Gia hạn thất bại").build();
-            }
-        }
-        catch(Exception e){
-            return ApiResponse.<String>builder().code(400)
-                    .message(e.getMessage()).build();
-        }
-    }
+    //Gia hạn hợp đồng
+    // @PutMapping("/dichvu/giahan/{id}")
+    // public ApiResponse<String> giaHanHopDongDichVu(@PathVariable long id) {
+    //     if (!hopDongService.isExistsDichVuById(id)) {
+    //         return ApiResponse.<String>builder().code(400)
+    //                 .message("Hợp đồng dịch vụ không tồn tại").build();
+    //     }
+    //     try{
+    //         YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
+    //         yeuCauDichVu.setThoiHan(plusDay(yeuCauDichVu.getThoiHan(), yeuCauDichVu.getChuKy()));
+    //         yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
+    //         return ApiResponse.<String>builder().code(200)
+    //                 .result("Yêu cầu gia hạn thành công").build();
+    //     }
+    //     catch(Exception e){
+    //         return ApiResponse.<String>builder().code(400)
+    //                 .message(e.getMessage()).build();
+    //     }
+    // }
 
     //Hủy hợp đồng
-    @PutMapping("dichvu/huy/{id}")
+    @PutMapping("/dichvu/huy/{id}")
     public ApiResponse<String> huyHopDongDichVu(@PathVariable long id) {
         if (!hopDongService.isExistsDichVuById(id)) {
             return ApiResponse.<String>builder().code(400)
@@ -508,10 +480,11 @@ public class QuanLyHopDongController {
         }
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
-            yeuCauDichVu.setTrangThai(true);
+            yeuCauDichVu.setYeuCau(1);
+            yeuCauDichVu.setDuyet(0);
             yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
             return ApiResponse.<String>builder().code(200)
-                    .result("Hủy thành công, bạn vẫn có thể sử dụng dịch vụ trước thời hạn").build();
+                    .result("Đã gửi yêu cầu hủy dịch vụ").build();
         }
         catch(Exception e){
             return ApiResponse.<String>builder().code(400)
@@ -519,127 +492,117 @@ public class QuanLyHopDongController {
         }
     }
 
-    @PostMapping("/hopdong/create-payment")
-    public ApiResponse<?> createHopDongVNPay(HttpServletRequest req,@RequestBody HopDongDTO hopDongDTO) throws UnsupportedEncodingException {
-        if(hopDongDTO==null){
-            return ApiResponse.<ThanhToanDTO>builder().code(400)
-            .message("Lỗi hợp đồng không có thông tin").build();
+    @PutMapping("/duyet/{id}/{duyet}")
+    public ApiResponse<String> duyetHopDongCanHo(@PathVariable("id")Long id,
+    @PathVariable("duyet")int duyet){
+        if(duyet==0){
+            return ApiResponse.<String>builder().code(400)
+            .message("Bạn không thể cung cấp tình trạng duyệt là 0").build();
         }
-        try{
-            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "dangky", hopDongDTO, null);
-            return ApiResponse.<ThanhToanDTO>builder().code(200)
-            .result(thanhToanDTO).build();
-        }
-        catch(Exception e){
-            return ApiResponse.<ThanhToanDTO>builder().code(400)
-            .message(e.getMessage()).build();
-        }
-    }
-
-    @PostMapping("/yeucaudichvu/create-payment")
-    public ApiResponse<?> createHopDongDichVuVNPay(HttpServletRequest req,@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) throws UnsupportedEncodingException {
-        if(yeuCauDichVuDTO==null){
-            return ApiResponse.<ThanhToanDTO>builder().code(400)
-            .message("Lỗi hợp đồng không có thông tin").build();
-        }
-        try{
-            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "dangky", null, yeuCauDichVuDTO);
-            return ApiResponse.<ThanhToanDTO>builder().code(200)
-            .result(thanhToanDTO).build();
-        }
-        catch(Exception e){
-            return ApiResponse.<ThanhToanDTO>builder().code(400)
-            .message(e.getMessage()).build();
-        }
-    }
-
-    @PostMapping("/giahanhopdong/create-payment/{id}")
-    public ApiResponse<?> createGiaHanHopDongVNPay(HttpServletRequest req,@PathVariable long id) throws UnsupportedEncodingException {
         HopDong hopDong = hopDongService.findById(id);
-        if(hopDong == null){
+        if(hopDong==null){
             return ApiResponse.<String>builder().code(404)
-            .message("Không tìm thấy").build();
+            .message("Không tìm thấy hợp đồng").build();
         }
+        
         try{
-            HopDongDTO hopDongDTO = hopDongService.mapToHopDongDTO(hopDong);
-            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "giahan", hopDongDTO, null);
-            return ApiResponse.<ThanhToanDTO>builder().code(200)
-            .result(thanhToanDTO).build();
+            hopDong.setDuyet(duyet);
+            if(duyet==2){
+                hopDongService.save(hopDong);
+                return ApiResponse.<String>builder().code(200)
+                .result("Từ chối thành công yêu cầu từ chủ hợp đồng").build();
+            }
+            if(hopDong.getYeuCau()==0){//Trường hợp đăng ký
+                hopDong.setTrangThai(false);//Mở khóa hợp đồng
+                HoaDon hoaDon = new HoaDon();
+                hoaDon.setThoiGianTao(getNow());
+                hoaDon.setHopDong(hopDong);
+                hoaDon.setTongHoaDon(hopDong.getGiaTri());
+                hoaDon.setTrangThai(false);
+                hoaDon = hoaDonService.save(hoaDon);//Lưu hóa đơn lần đầu
+                if(!hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
+                    hopDong.setTrangThai(true);
+                    hopDong.setDuyet(0);
+                    hopDongService.save(hopDong);
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Lỗi: Không thể tạo hóa đơn").build();
+                }
+                hopDongService.save(hopDong);
+                return ApiResponse.<String>builder().code(200)
+                .result("Đồng ý thành công đăng ký hợp đồng mới").build();
+            }
+            else if(hopDong.getYeuCau()==1){//yêu cầu gia hạn
+                hopDong.setThoiHan(plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
+                hopDongService.save(hopDong);
+                return ApiResponse.<String>builder().code(200)
+                .result("Gia hạn thành công").build();
+            }
+            else if(hopDong.getYeuCau()==2){
+                hopDong.setTrangThai(true);
+                hopDongService.save(hopDong);
+                return ApiResponse.<String>builder().code(200)
+                .result("Hủy hợp đồng thành công").build();
+            }
+            return ApiResponse.<String>builder().code(400)
+            .message("Lỗi không đúng theo định dạng quy định").build();
         }
         catch(Exception e){
-            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            return ApiResponse.<String>builder().code(400)
             .message(e.getMessage()).build();
         }
     }
 
-    @PostMapping("/giahanyeucaudichvu/create-payment/{id}")
-    public ApiResponse<?> createGiaHanHopDongDichVuVNPay(HttpServletRequest req,@PathVariable long id) throws UnsupportedEncodingException {
+    @PutMapping("/dichvu/duyet/{id}/{duyet}")
+    public ApiResponse<String> duyetHopDongDichVu(@PathVariable("id")Long id,
+    @PathVariable("duyet")int duyet){
+        if(duyet==0){
+            return ApiResponse.<String>builder().code(400)
+            .message("Bạn không thể cung cấp tình trạng duyệt là 0").build();
+        }
         YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
-        if(yeuCauDichVu == null){
+        if(yeuCauDichVu==null){
             return ApiResponse.<String>builder().code(404)
-            .message("Không tìm thấy").build();
+            .message("Không tìm thấy hợp đồng dịch vụ").build();
         }
+        
         try{
-            YeuCauDichVuDTO yeuCauDichVuDTO = hopDongService.mapToYeuCauDichVuDTO(yeuCauDichVu);
-            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, "giahan", null, yeuCauDichVuDTO);
-            return ApiResponse.<ThanhToanDTO>builder().code(200)
-            .result(thanhToanDTO).build();
+            yeuCauDichVu.setDuyet(duyet);
+            if(duyet==2){
+                hopDongService.saveDichVu(yeuCauDichVu);
+                return ApiResponse.<String>builder().code(200)
+                .result("Từ chối thành công yêu cầu từ chủ hợp đồng").build();
+            }
+            if(yeuCauDichVu.getYeuCau()==0){//Trường hợp đăng ký
+                yeuCauDichVu.setTrangThai(false);//Mở khóa hợp đồng
+                HoaDon hoaDon = new HoaDon();
+                hoaDon.setYeuCauDichVu(yeuCauDichVu);
+                hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
+                hoaDon.setTrangThai(false);
+                hoaDon.setThoiGianTao(getNow());
+                hoaDon = hoaDonService.save(hoaDon);//Lưu hóa đơn lần đầu
+                if(!hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
+                    yeuCauDichVu.setTrangThai(true);
+                    yeuCauDichVu.setDuyet(0);
+                    hopDongService.saveDichVu(yeuCauDichVu);
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Lỗi: Không thể tạo hóa đơn").build();
+                }
+                hopDongService.saveDichVu(yeuCauDichVu);
+                return ApiResponse.<String>builder().code(200)
+                .result("Đồng ý thành công đăng ký hợp đồng dịch vụ mới").build();
+            }
+            else if(yeuCauDichVu.getYeuCau()==1){
+                yeuCauDichVu.setTrangThai(true);
+                hopDongService.saveDichVu(yeuCauDichVu);
+                return ApiResponse.<String>builder().code(200)
+                .result("Hủy dịch vụ thành công").build();
+            }
+            return ApiResponse.<String>builder().code(400)
+            .message("Lỗi không đúng theo định dạng quy định").build();
         }
         catch(Exception e){
-            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            return ApiResponse.<String>builder().code(400)
             .message(e.getMessage()).build();
         }
     }
-
-    @GetMapping("/payment_infor")
-    public RedirectView getInforPayment(
-        @RequestParam("vnp_TxnRef")String vnp_TxnRef,
-        @RequestParam("vnp_ResponseCode")String vnp_ResponseCode,
-        @RequestParam("vnp_TransactionNo")String vnp_TransactionNo) 
-    {   
-        try{
-        //Trường hợp thành công
-            if(vnp_ResponseCode.equals("00")){
-                ThanhToanDTO thanhToanDTO = thanhToanService.getThanhToanDTO(vnp_TxnRef);
-                System.out.println("Size: ");
-                System.out.println(thanhToanService.getSizeGiaoDich());
-                ApiResponse<String> response = new ApiResponse<>();
-                if(thanhToanDTO.getLoaiGiaoDich().equals("dangky")){
-                    if(thanhToanDTO.getHopDong()!=null){
-                        response = insertHopDong(thanhToanDTO.getHopDong());
-                    }
-                    else if(thanhToanDTO.getYeuCauDichVu()!=null){
-                        response = insertHopDongDichVu(thanhToanDTO.getYeuCauDichVu());
-                    } 
-                }
-                else if(thanhToanDTO.getLoaiGiaoDich().equals("giahan")){
-                    if(thanhToanDTO.getHopDong()!=null){
-                        response = giaHanHopDong(thanhToanDTO.getHopDong().getIdHopDong());
-                    }
-                    else if(thanhToanDTO.getYeuCauDichVu()!=null){
-                        response = giaHanHopDongDichVu(thanhToanDTO.getYeuCauDichVu().getIdYeuCauDichVu());
-                    } 
-                }
-                thanhToanService.removeThanhToan(vnp_TxnRef);
-                if(response.getCode()==200){
-                    System.out.println(response.getResult());
-                    return new RedirectView("http://localhost:5173/success");
-                }
-                else{
-                    System.out.println(response.getMessage());
-                    return new RedirectView("http://localhost:5173/fail");
-                }
-                
-            }
-            else{//Hủy hoặc thất bại
-                thanhToanService.removeThanhToan(vnp_TxnRef);
-                return new RedirectView("http://localhost:5173/fail");
-            }
-        }catch(Exception e){
-            System.out.println(e.getMessage());
-            return new RedirectView("http://localhost:5173/fail");
-        }
-    }
-
-
 }

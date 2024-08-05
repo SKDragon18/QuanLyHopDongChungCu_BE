@@ -22,6 +22,7 @@ public class CanHoBayBanDTO {
     private String moTa;
     private BigDecimal giaThue;
     private int chuKy;
+    private int chuKyDong;
     private BigDecimal giaKhuyenMai;
     private int trangThaiThue;
     private List<DieuKhoanDTO> dieuKhoanList;

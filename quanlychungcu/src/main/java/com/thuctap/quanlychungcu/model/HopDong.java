@@ -49,11 +49,23 @@ public class HopDong {
     @Column(name="THOIHAN", nullable = false)
     private Timestamp thoiHan;
 
+    @Column(name="THOIGIANDONG", nullable = false)
+    private Timestamp thoiGianDong;
+
     @Column(name="CHUKY", nullable = false)
     private int chuKy;
 
+    @Column(name="CHUKYDONG", nullable = false)
+    private int chuKyDong;
+
     @Column(name="TRANGTHAI", nullable = false)
     private Boolean trangThai;
+
+    @Column(name="YEUCAU",nullable = true)
+    private int yeuCau;
+
+    @Column(name="DUYET",nullable = true)
+    private int duyet;
 
     @OneToMany(mappedBy = "hopDong")
     List<CTHopDong> chiTietHopDongList;

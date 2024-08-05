@@ -24,11 +24,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 public class SecurityConfig {
     private final String [] KHACHHANG_ROLE={
+        "/hopdong/**"
     };
     private final String [] QUANLY_ROLE={
         "/canho/**",
         "/dichvu/**",
-        "/banggia/**"
+        "/banggia/**",
+        "/dieukhoan/**"
     };
     private final String [] ADMIN_ROLE={
         "/taikhoan/**"
@@ -45,7 +47,6 @@ public class SecurityConfig {
         // .requestMatchers(HttpMethod.POST, "/*/*").permitAll()
         // .requestMatchers(HttpMethod.GET, "/canho/loaiphong").permitAll()
         // .requestMatchers(HttpMethod.GET,"/hoadon/**").hasAnyRole("khachhang","quanly")
-        .requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()
         .requestMatchers(HttpMethod.GET, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.POST, QUANLY_ROLE).hasRole("quanly")
         .requestMatchers(HttpMethod.PUT, QUANLY_ROLE).hasRole("quanly")
@@ -56,6 +57,13 @@ public class SecurityConfig {
         .requestMatchers(HttpMethod.PUT, ADMIN_ROLE).hasRole("admin")
         .requestMatchers(HttpMethod.DELETE, ADMIN_ROLE).hasRole("admin")
 
+        // .requestMatchers(HttpMethod.GET, "/hopdong/**").hasAnyRole("khachhang","quanly")
+        .requestMatchers(HttpMethod.POST, KHACHHANG_ROLE).hasRole("khachhang")
+        .requestMatchers(HttpMethod.PUT, KHACHHANG_ROLE).hasAnyRole("khachhang","quanly")
+
+        .requestMatchers(HttpMethod.PUT, "/nguoidung/doimatkhau").authenticated()
+        .requestMatchers(HttpMethod.GET, "/nguoidung/thongtin").authenticated()
+        .requestMatchers(HttpMethod.POST, "/nguoidung/doihinhanh").authenticated()
         .requestMatchers(
             new AntPathRequestMatcher("/*"),
             new AntPathRequestMatcher("/*/*"),

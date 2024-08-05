@@ -192,6 +192,7 @@ public class BangGiaService {
                 .moTa((String)x.get("MOTA"))
                 .giaThue((BigDecimal)x.get("GIATHUE"))
                 .chuKy((int)x.get("CHUKY"))
+                .chuKyDong((int)x.get("CHUKYDONG"))
                 .giaKhuyenMai((BigDecimal)x.get("GIAKHUYENMAI"))
                 .trangThaiThue((int)x.get("TRANGTHAITHUE"))
                 .build();

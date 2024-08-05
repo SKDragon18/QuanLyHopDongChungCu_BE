@@ -52,6 +52,12 @@ public class YeuCauDichVu {
     @Column(name="TRANGTHAI", nullable = false)
     private Boolean trangThai;
 
+    @Column(name="YEUCAU",nullable = true)
+    private int yeuCau;
+
+    @Column(name="DUYET",nullable = true)
+    private int duyet;
+
     @OneToMany(mappedBy = "yeuCauDichVu")
     List<CTYeuCauDichVu> chiTietYeuCauDichVuList;
 }

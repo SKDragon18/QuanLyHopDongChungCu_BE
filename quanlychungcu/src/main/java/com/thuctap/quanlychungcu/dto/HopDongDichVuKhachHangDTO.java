@@ -22,5 +22,7 @@ public class HopDongDichVuKhachHangDTO {
     private int chuKy;
     private Boolean trangThai;
     private Boolean giaHan;
+    private int yeuCau;
+    private int duyet;
     List<DieuKhoanDTO> dieuKhoanList;
 }

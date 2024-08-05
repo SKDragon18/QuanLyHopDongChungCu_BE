@@ -1,4 +1,6 @@
 package com.thuctap.quanlychungcu.dto;
+import com.thuctap.quanlychungcu.model.HoaDon;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +14,5 @@ public class ThanhToanDTO {
     private String url;
     private String vnp_TxnRef;
     private String vnp_CreateDate;
-    private String loaiGiaoDich;
-    private HopDongDTO hopDong;
-    private YeuCauDichVuDTO yeuCauDichVu;
+    private HoaDon hoaDon;
 }

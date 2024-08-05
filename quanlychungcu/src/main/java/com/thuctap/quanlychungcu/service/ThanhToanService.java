@@ -21,6 +21,7 @@ import com.thuctap.quanlychungcu.config.VNPayConfig;
 import com.thuctap.quanlychungcu.dto.HopDongDTO;
 import com.thuctap.quanlychungcu.dto.ThanhToanDTO;
 import com.thuctap.quanlychungcu.dto.YeuCauDichVuDTO;
+import com.thuctap.quanlychungcu.model.HoaDon;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -50,17 +51,11 @@ public class ThanhToanService {
         return String.valueOf(thanhToanCache.size());
     }
 
-    public ThanhToanDTO createVNPPayment(HttpServletRequest req,String loaiGiaoDich, 
-    HopDongDTO hopDong, YeuCauDichVuDTO yeuCauDichVu)throws UnsupportedEncodingException{
+    public ThanhToanDTO createVNPPayment(HttpServletRequest req, HoaDon hoaDon)throws UnsupportedEncodingException{
         try{
-            if(hopDong!=null&&yeuCauDichVu!=null)throw new Error("Yêu cầu không hợp lệ");
+            if(hoaDon==null)throw new Error("Yêu cầu không hợp lệ");
             BigDecimal mount = null;
-            if(hopDong!=null){
-                mount = hopDong.getGiaTri();
-            }
-            else if(yeuCauDichVu!=null){
-                mount = yeuCauDichVu.getGiaTra();
-            }
+            mount = hoaDon.getTongHoaDon();
             if(mount==null){
                 throw new Error("Lỗi lấy thông tin");
             }
@@ -131,7 +126,7 @@ public class ThanhToanService {
             queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
             String paymentUrl = VNPayConfig.vnp_PayUrl + "?" + queryUrl;
             ThanhToanDTO thanhToanDTO = ThanhToanDTO.builder()
-            .hopDong(hopDong).yeuCauDichVu(yeuCauDichVu).loaiGiaoDich(loaiGiaoDich)
+            .hoaDon(hoaDon)
             .vnp_CreateDate(vnp_CreateDate).vnp_TxnRef(vnp_TxnRef).url(paymentUrl).build();
             cacheThanhToan(thanhToanDTO);
             return thanhToanDTO;

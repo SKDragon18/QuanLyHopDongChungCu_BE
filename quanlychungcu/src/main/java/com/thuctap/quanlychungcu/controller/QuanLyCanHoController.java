@@ -67,7 +67,7 @@ public class QuanLyCanHoController {
     @PostMapping
     public ApiResponse<CanHoDTO> insertCanHo(@RequestBody CanHoDTO canHoDTO) {
         CanHo canHo = canHoService.mapToCanHo(canHoDTO);
-        canHo.setTrangThai(false);
+        canHo.setTrangThai(true);
         try{
             canHo = canHoService.save(canHo);
             if(canHoService.isExistsById(canHo.getIdCanHo())){

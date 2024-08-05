@@ -60,6 +60,10 @@ public class CanHo {
     @Column(name = "CHUKY", nullable = false)
     private int chuKy;
 
+    @Column(name = "CHUKYDONG", nullable = false)
+    private int chuKyDong;
+
+
     @OneToMany(mappedBy = "canHo")
     List<HinhAnh> hinhAnhList;
 

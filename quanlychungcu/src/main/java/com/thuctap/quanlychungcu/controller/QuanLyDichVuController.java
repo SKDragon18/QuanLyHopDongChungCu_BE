@@ -52,7 +52,7 @@ public class QuanLyDichVuController {
     public ApiResponse<DichVuDTO> insertDichVu(@RequestBody DichVuDTO dichVuDTO) {
         DichVu dichVu = dichVuService.mapToDichVu(dichVuDTO);
         try{
-            dichVu.setTrangThai(false);
+            dichVu.setTrangThai(true);
             dichVu = dichVuService.save(dichVu);
             if(dichVuService.isExistsById(dichVu.getIdDichVu())){
                 DichVuDTO dichVuDTO2 = dichVuService.mapToDichVuDTO(dichVu);

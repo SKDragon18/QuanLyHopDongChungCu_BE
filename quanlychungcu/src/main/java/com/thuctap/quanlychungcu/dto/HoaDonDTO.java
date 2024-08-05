@@ -14,8 +14,9 @@ import lombok.NoArgsConstructor;
 public class HoaDonDTO {
     private long soHoaDon;
     private Timestamp thoiGianDong;
+    private Timestamp thoiGianTao;
     private BigDecimal tongHoaDon;
     private HopDongDTO hopDong;
     private YeuCauDichVuDTO yeuCauDichVu;
-
+    private Boolean trangThai;
 }

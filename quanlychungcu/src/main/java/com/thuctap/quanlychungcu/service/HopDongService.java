@@ -85,6 +85,10 @@ public class HopDongService {
             .thoiHan(hopDong.getThoiHan())
             .chuKy(hopDong.getChuKy())
             .trangThai(hopDong.getTrangThai())
+            .chuKyDong(hopDong.getChuKyDong())
+            .thoiGianDong(hopDong.getThoiGianDong())
+            .yeuCau(hopDong.getYeuCau())
+            .duyet(hopDong.getDuyet())
             .build();
     }
     public HopDongKhachHangDTO mapToHopDongKhachHangDTO(HopDong hopDong){
@@ -99,8 +103,12 @@ public class HopDongService {
             .giaTri(hopDong.getGiaTri())
             .ngayBatDau(hopDong.getNgayBatDau())
             .thoiHan(hopDong.getThoiHan())
+            .thoiGianDong(hopDong.getThoiGianDong())
             .chuKy(hopDong.getChuKy())
+            .chuKyDong(hopDong.getChuKyDong())
             .trangThai(hopDong.getTrangThai())
+            .yeuCau(hopDong.getYeuCau())
+            .duyet(hopDong.getDuyet())
             .build();
         Timestamp thoiHanTruoc = minusDay(hopDong.getThoiHan(), 7);
         Timestamp thoiHanSau = plusDay(hopDong.getThoiHan(), 7);
@@ -147,6 +155,10 @@ public class HopDongService {
             .thoiHan(hopDongDTO.getThoiHan())
             .chuKy(hopDongDTO.getChuKy())
             .trangThai(hopDongDTO.getTrangThai())
+            .chuKyDong(hopDongDTO.getChuKyDong())
+            .thoiGianDong(hopDongDTO.getThoiGianDong())
+            .yeuCau(hopDongDTO.getYeuCau())
+            .duyet(hopDongDTO.getDuyet())
             .build();
     }
 
@@ -202,6 +214,8 @@ public class HopDongService {
         .thoiHan(yeuCauDichVu.getThoiHan())
         .chuKy(yeuCauDichVu.getChuKy())
         .trangThai(yeuCauDichVu.getTrangThai())
+        .yeuCau(yeuCauDichVu.getYeuCau())
+        .duyet(yeuCauDichVu.getDuyet())
         .build();
 
         Timestamp thoiHanTruoc = minusDay(yeuCauDichVu.getThoiHan(), 7);
@@ -242,6 +256,8 @@ public class HopDongService {
             .thoiHan(yeuCauDichVu.getThoiHan())
             .chuKy(yeuCauDichVu.getChuKy())
             .trangThai(yeuCauDichVu.getTrangThai())
+            .duyet(yeuCauDichVu.getDuyet())
+            .yeuCau(yeuCauDichVu.getYeuCau())
             .build();
     }
 
@@ -265,6 +281,8 @@ public class HopDongService {
         .thoiHan(yeuCauDichVuDTO.getThoiHan())
         .chuKy(yeuCauDichVuDTO.getChuKy())
         .trangThai(yeuCauDichVuDTO.getTrangThai())
+        .duyet(yeuCauDichVuDTO.getDuyet())
+        .yeuCau(yeuCauDichVuDTO.getYeuCau())
         .build();
     }
 

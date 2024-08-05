@@ -19,5 +19,7 @@ public class YeuCauDichVuDTO {
     private Timestamp ngayYeuCau;
     private Timestamp thoiHan;
     private int chuKy;
+    private int yeuCau;
+    private int duyet;
     private Boolean trangThai;
 }

@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
@@ -104,26 +105,63 @@ public class QuanLyHoaDonController {
     }
     
 
-    // @PostMapping
-    // public ApiResponse<HoaDonDTO> insertHoaDon(@RequestBody HoaDonDTO hoaDonDTO) {
-    //     HoaDon hoaDon = hoaDonService.mapToHoaDon(hoaDonDTO);
-    //     try{
-    //         hoaDon = hoaDonService.save(hoaDon);
-    //         if(hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
-    //             HoaDonDTO hoaDonDTO2 = hoaDonService.mapToHoaDonDTO(hoaDon);
-    //             return ApiResponse.<HoaDonDTO>builder().code(200)
-    //             .result(hoaDonDTO2).build();
-    //         }
-    //         else{
-    //             return ApiResponse.<HoaDonDTO>builder().code(400)
-    //             .message("Thêm thất bại").build();
-    //         }
-    //     }
-    //     catch(Exception e){
-    //         return ApiResponse.<HoaDonDTO>builder().code(400)
-    //             .message(e.getMessage()).build();
-    //     }
-    // }
+    @GetMapping("/thanhtoan/{id}")
+    public ApiResponse<?> getURLVNPay(HttpServletRequest req,@PathVariable long id) throws UnsupportedEncodingException {
+        HoaDon hoaDon = hoaDonService.findById(id);
+        if(hoaDon==null){
+            return ApiResponse.<ThanhToanDTO>builder().code(404)
+            .message("Không tìm thấy hóa đơn").build();
+        }
+        if(hoaDon.getTrangThai()){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message("Hóa đơn đã thanh toán").build();
+        }
+        try{
+            ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, hoaDon);
+            return ApiResponse.<ThanhToanDTO>builder().code(200)
+            .result(thanhToanDTO).build();
+        }
+        catch(Exception e){
+            return ApiResponse.<ThanhToanDTO>builder().code(400)
+            .message(e.getMessage()).build();
+        }
+    }
+    @GetMapping("/payment_infor")
+    public RedirectView getInforPayment(
+        @RequestParam("vnp_TxnRef")String vnp_TxnRef,
+        @RequestParam("vnp_ResponseCode")String vnp_ResponseCode,
+        @RequestParam("vnp_TransactionNo")String vnp_TransactionNo) 
+    {   
+        try{
+        //Trường hợp thành công
+            if(vnp_ResponseCode.equals("00")){
+                ThanhToanDTO thanhToanDTO = thanhToanService.getThanhToanDTO(vnp_TxnRef);
+                System.out.println("Size: ");
+                System.out.println(thanhToanService.getSizeGiaoDich());
+                try{
+                    HoaDon hoaDon = thanhToanDTO.getHoaDon();
+                    hoaDon.setTrangThai(true);
+                    hoaDon.setThoiGianDong(getNow());
+                    hoaDon=hoaDonService.save(hoaDon);
+                    thanhToanService.removeThanhToan(vnp_TxnRef);
+                    return new RedirectView("http://localhost:5173/success");
+                }
+                catch(Exception e){
+                    System.out.println("Lỗi thanh toán: "+e.getMessage());
+                    thanhToanService.removeThanhToan(vnp_TxnRef);
+                    return new RedirectView("http://localhost:5173/fail");
+                }
+                
+            }
+            else{//Hủy hoặc thất bại
+                thanhToanService.removeThanhToan(vnp_TxnRef);
+                return new RedirectView("http://localhost:5173/fail");
+            }
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return new RedirectView("http://localhost:5173/fail");
+        }
+    }
 
     
     // @GetMapping("/check-payment/{id}")
