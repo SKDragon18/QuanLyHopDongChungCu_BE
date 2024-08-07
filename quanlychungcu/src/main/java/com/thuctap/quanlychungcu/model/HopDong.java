@@ -37,6 +37,10 @@ public class HopDong {
     private KhachHang khachHang;
 
     @ManyToOne
+    @JoinColumn(name = "MABANQUANLY")
+    private BanQuanLy banQuanLy;
+
+    @ManyToOne
     @JoinColumn(name = "IDCANHO",nullable = true)
     private CanHo canHo;
 

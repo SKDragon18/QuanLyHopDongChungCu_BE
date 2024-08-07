@@ -94,6 +94,16 @@ public class AuthenticateService {
         }
     }
 
+    public String getTenDangNhap(String token) throws ParseException, JOSEException{
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        var verified = signedJWT.verify(verifier);
+        if(verified){
+            return signedJWT.getJWTClaimsSet().getSubject();
+        }
+        return null;
+    }
+
     public Boolean introspect(String token) throws JOSEException, ParseException{
         JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);

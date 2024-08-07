@@ -37,6 +37,10 @@ public class YeuCauDichVu {
     @JoinColumn(name = "IDDICHVU")
     private DichVu dichVu;
 
+    @ManyToOne
+    @JoinColumn(name = "MABANQUANLY")
+    private BanQuanLy banQuanLy;
+
     @Column(name="GIATRA", nullable = false)
     private BigDecimal giaTra;
 

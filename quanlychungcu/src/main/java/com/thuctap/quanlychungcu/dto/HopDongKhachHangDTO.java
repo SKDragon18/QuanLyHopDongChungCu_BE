@@ -26,6 +26,7 @@ public class HopDongKhachHangDTO {
     private int duyet;
     private Boolean giaHan;
     private KhachHangDTO khachHang;
+    private BanQuanLyDTO banQuanLy;
     private CanHoDTO canHo;
     List<DieuKhoanDTO> dieuKhoanList;
 }

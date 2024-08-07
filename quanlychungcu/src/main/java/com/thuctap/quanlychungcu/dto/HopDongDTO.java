@@ -16,6 +16,7 @@ public class HopDongDTO {
     private long idHopDong;
     private Timestamp ngayLap;
     private KhachHangDTO khachHang;
+    private BanQuanLyDTO banQuanLy;
     private CanHoDTO canHo;
     private BigDecimal giaTri;
     private Timestamp ngayBatDau;

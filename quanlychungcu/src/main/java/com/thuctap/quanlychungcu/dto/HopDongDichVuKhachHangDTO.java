@@ -16,6 +16,7 @@ public class HopDongDichVuKhachHangDTO {
     private long idYeuCauDichVu;
     private HopDongDTO hopDong;
     private DichVuDTO dichVu;
+    private BanQuanLyDTO banQuanLy;
     private BigDecimal giaTra;
     private Timestamp ngayYeuCau;
     private Timestamp thoiHan;

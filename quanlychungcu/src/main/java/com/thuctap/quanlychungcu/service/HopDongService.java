@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.thuctap.quanlychungcu.dto.BanQuanLyDTO;
 import com.thuctap.quanlychungcu.dto.CanHoDTO;
 import com.thuctap.quanlychungcu.dto.DichVuDTO;
 import com.thuctap.quanlychungcu.dto.HopDongDTO;
@@ -17,15 +18,18 @@ import com.thuctap.quanlychungcu.dto.HopDongDichVuKhachHangDTO;
 import com.thuctap.quanlychungcu.dto.HopDongKhachHangDTO;
 import com.thuctap.quanlychungcu.dto.KhachHangDTO;
 import com.thuctap.quanlychungcu.dto.YeuCauDichVuDTO;
+import com.thuctap.quanlychungcu.model.BanQuanLy;
 import com.thuctap.quanlychungcu.model.CTHopDong;
 import com.thuctap.quanlychungcu.model.CTYeuCauDichVu;
 import com.thuctap.quanlychungcu.model.CanHo;
 import com.thuctap.quanlychungcu.model.DichVu;
+import com.thuctap.quanlychungcu.model.HoaDon;
 import com.thuctap.quanlychungcu.model.HopDong;
 import com.thuctap.quanlychungcu.model.KhachHang;
 import com.thuctap.quanlychungcu.model.YeuCauDichVu;
 import com.thuctap.quanlychungcu.repository.CTHopDongRepository;
 import com.thuctap.quanlychungcu.repository.CTYeuCauDichVuRepository;
+import com.thuctap.quanlychungcu.repository.HoaDonRepository;
 import com.thuctap.quanlychungcu.repository.HopDongRepository;
 import com.thuctap.quanlychungcu.repository.YeuCauDichVuRepository;
 
@@ -46,6 +50,9 @@ public class HopDongService {
     CTYeuCauDichVuRepository chiTietYeuCauDichVuRepository;
 
     @Autowired
+    HoaDonRepository hoaDonRepository;
+
+    @Autowired
     CanHoService canHoService;
 
     @Autowired
@@ -53,6 +60,9 @@ public class HopDongService {
 
     @Autowired
     KhachHangService khachHangService;
+
+    @Autowired
+    BanQuanLyService banQuanLyService;
 
     public Timestamp plusDay(Timestamp time, int day){
         LocalDateTime localDateTime = time.toLocalDateTime();
@@ -74,7 +84,8 @@ public class HopDongService {
     public HopDongDTO mapToHopDongDTO(HopDong hopDong){
         if(hopDong==null)return null;
         KhachHangDTO khachHangDTO = khachHangService.mapToKhachHangDTO(hopDong.getKhachHang());
-        CanHoDTO canHoDTO = canHoService.mapToCanHoDTO(hopDong.getCanHo(),false);;
+        CanHoDTO canHoDTO = canHoService.mapToCanHoDTO(hopDong.getCanHo(),false);
+        BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(hopDong.getBanQuanLy());
         return HopDongDTO.builder()
             .idHopDong(hopDong.getIdHopDong())
             .ngayLap(hopDong.getNgayLap())
@@ -89,12 +100,14 @@ public class HopDongService {
             .thoiGianDong(hopDong.getThoiGianDong())
             .yeuCau(hopDong.getYeuCau())
             .duyet(hopDong.getDuyet())
+            .banQuanLy(banQuanLyDTO)
             .build();
     }
     public HopDongKhachHangDTO mapToHopDongKhachHangDTO(HopDong hopDong){
         if(hopDong==null)return null;
         KhachHangDTO khachHangDTO = khachHangService.mapToKhachHangDTO(hopDong.getKhachHang());
-        CanHoDTO canHoDTO = canHoService.mapToCanHoDTO(hopDong.getCanHo(),false);;
+        CanHoDTO canHoDTO = canHoService.mapToCanHoDTO(hopDong.getCanHo(),false);
+        BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(hopDong.getBanQuanLy());
         HopDongKhachHangDTO hopDongKhachHangDTO = HopDongKhachHangDTO.builder()
         .idHopDong(hopDong.getIdHopDong())
             .ngayLap(hopDong.getNgayLap())
@@ -109,22 +122,13 @@ public class HopDongService {
             .trangThai(hopDong.getTrangThai())
             .yeuCau(hopDong.getYeuCau())
             .duyet(hopDong.getDuyet())
+            .banQuanLy(banQuanLyDTO)
             .build();
         Timestamp thoiHanTruoc = minusDay(hopDong.getThoiHan(), 7);
-        Timestamp thoiHanSau = plusDay(hopDong.getThoiHan(), 7);
+        Timestamp thoiHanSau = plusDay(hopDong.getThoiHan(), 1);
         Timestamp now = getNow();
         if(now.after(thoiHanTruoc)&&now.before(thoiHanSau)){
             hopDongKhachHangDTO.setGiaHan(true);
-        }
-        else if(now.after(thoiHanSau)){
-            try{
-                hopDong.setTrangThai(true);//tự động hủy
-                hopDong = save(hopDong);
-                hopDongKhachHangDTO.setGiaHan(false);
-            }
-            catch(Exception e){
-                throw new IllegalStateException("Hủy thất bại: " + e);
-            }
         }
         else{
             hopDongKhachHangDTO.setGiaHan(false);
@@ -145,6 +149,12 @@ public class HopDongService {
         if(hopDongDTO.getCanHo()!=null){
             canHo = canHoService.findById(hopDongDTO.getCanHo().getIdCanHo());
         }
+
+        BanQuanLy banQuanLy = null;
+        if(hopDongDTO.getBanQuanLy()!=null){
+            banQuanLy = banQuanLyService.findById(hopDongDTO.getBanQuanLy().getMa());
+        }
+
         return HopDong.builder()
             .idHopDong(hopDongDTO.getIdHopDong())
             .ngayLap(hopDongDTO.getNgayLap())
@@ -159,6 +169,7 @@ public class HopDongService {
             .thoiGianDong(hopDongDTO.getThoiGianDong())
             .yeuCau(hopDongDTO.getYeuCau())
             .duyet(hopDongDTO.getDuyet())
+            .banQuanLy(banQuanLy)
             .build();
     }
 
@@ -205,6 +216,7 @@ public class HopDongService {
         if(yeuCauDichVu==null)return null;
         HopDongDTO hopDongDTO = mapToHopDongDTO(yeuCauDichVu.getHopDong());
         DichVuDTO dichVuDTO = dichVuService.mapToDichVuDTO(yeuCauDichVu.getDichVu());
+        BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(yeuCauDichVu.getBanQuanLy());
         HopDongDichVuKhachHangDTO hopDongDichVuKhachHangDTO = HopDongDichVuKhachHangDTO.builder()
         .idYeuCauDichVu(yeuCauDichVu.getIdYeuCauDichVu())
         .hopDong(hopDongDTO)
@@ -216,26 +228,17 @@ public class HopDongService {
         .trangThai(yeuCauDichVu.getTrangThai())
         .yeuCau(yeuCauDichVu.getYeuCau())
         .duyet(yeuCauDichVu.getDuyet())
+        .banQuanLy(banQuanLyDTO)
         .build();
 
         Timestamp thoiHanTruoc = minusDay(yeuCauDichVu.getThoiHan(), 7);
-        Timestamp thoiHanSau = plusDay(yeuCauDichVu.getThoiHan(), 7);
+        Timestamp thoiHanSau = plusDay(yeuCauDichVu.getThoiHan(), 1);
         Timestamp now = getNow();
         if(yeuCauDichVu.getChuKy()==0){
             hopDongDichVuKhachHangDTO.setGiaHan(false);
         }
         else if(now.after(thoiHanTruoc)&&now.before(thoiHanSau)){
             hopDongDichVuKhachHangDTO.setGiaHan(true);
-        }
-        else if(now.after(thoiHanSau)){
-            try{
-                yeuCauDichVu.setTrangThai(true);//tự động hủy
-                yeuCauDichVu = saveDichVu(yeuCauDichVu);
-                hopDongDichVuKhachHangDTO.setGiaHan(false);
-            }
-            catch(Exception e){
-                throw new IllegalStateException("Hủy thất bại: " + e);
-            }
         }
         else{
             hopDongDichVuKhachHangDTO.setGiaHan(false);
@@ -247,6 +250,7 @@ public class HopDongService {
         if(yeuCauDichVu==null)return null;
         HopDongDTO hopDongDTO = mapToHopDongDTO(yeuCauDichVu.getHopDong());
         DichVuDTO dichVuDTO = dichVuService.mapToDichVuDTO(yeuCauDichVu.getDichVu());
+        BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(yeuCauDichVu.getBanQuanLy());
         return YeuCauDichVuDTO.builder()
             .idYeuCauDichVu(yeuCauDichVu.getIdYeuCauDichVu())
             .hopDong(hopDongDTO)
@@ -258,6 +262,7 @@ public class HopDongService {
             .trangThai(yeuCauDichVu.getTrangThai())
             .duyet(yeuCauDichVu.getDuyet())
             .yeuCau(yeuCauDichVu.getYeuCau())
+            .banQuanLy(banQuanLyDTO)
             .build();
     }
 
@@ -272,6 +277,12 @@ public class HopDongService {
         if(yeuCauDichVuDTO.getDichVu()!=null){
             dichVu = dichVuService.findById(yeuCauDichVuDTO.getDichVu().getIdDichVu());
         }
+
+        BanQuanLy banQuanLy = null;
+        if(yeuCauDichVuDTO.getBanQuanLy()!=null){
+            banQuanLy = banQuanLyService.findById(yeuCauDichVuDTO.getBanQuanLy().getMa());
+        }
+
         return YeuCauDichVu.builder()
         .idYeuCauDichVu(yeuCauDichVuDTO.getIdYeuCauDichVu())
         .hopDong(hopDong)
@@ -283,6 +294,7 @@ public class HopDongService {
         .trangThai(yeuCauDichVuDTO.getTrangThai())
         .duyet(yeuCauDichVuDTO.getDuyet())
         .yeuCau(yeuCauDichVuDTO.getYeuCau())
+        .banQuanLy(banQuanLy)
         .build();
     }
 
@@ -334,4 +346,30 @@ public class HopDongService {
     public CTYeuCauDichVu saveCTYeuCauDichVu(CTYeuCauDichVu chiTietYeuCauDichVu){
         return chiTietYeuCauDichVuRepository.save(chiTietYeuCauDichVu);
     }
+
+    public void huyDichVu(YeuCauDichVu yeuCauDichVu){
+        Timestamp thoiHan = yeuCauDichVu.getThoiHan();
+        Timestamp thoiHanTruoc = minusDay(thoiHan, yeuCauDichVu.getChuKy());
+        Timestamp thoiHanTruoc7Ngay = minusDay(thoiHanTruoc,7);
+        Timestamp now = getNow();
+        if(now.compareTo(thoiHanTruoc)<=0){
+            List<HoaDon> hoaDonList = hoaDonRepository.findAll();
+            for(HoaDon x: hoaDonList){
+                //Có hóa đơn chưa thanh toán của yêu cầu dịch vụ
+                if(!x.getTrangThai()
+                &&x.getYeuCauDichVu().getIdYeuCauDichVu()==yeuCauDichVu.getIdYeuCauDichVu()){
+                    //Tự động thiết lập lại phát sinh hóa đơn trước kỳ hạn 7 ngày
+                    if(x.getThoiGianTao().compareTo(thoiHanTruoc7Ngay)>=0){
+                        hoaDonRepository.deleteById(x.getSoHoaDon());
+                        yeuCauDichVu.setThoiHan(thoiHanTruoc);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        yeuCauDichVu.setTrangThai(true);
+        saveDichVu(yeuCauDichVu);
+    }
+
 }
