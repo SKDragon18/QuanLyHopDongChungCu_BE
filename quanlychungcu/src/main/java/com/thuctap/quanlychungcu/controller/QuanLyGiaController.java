@@ -53,12 +53,6 @@ public class QuanLyGiaController {
     @Autowired
     BanQuanLyService banQuanLyService;
 
-    public Timestamp convertToUTC(Timestamp time){
-        LocalDateTime localDateTime = time.toLocalDateTime();
-        localDateTime = localDateTime.minusHours(7);//trừ 7 tiếng
-        return Timestamp.valueOf(localDateTime);
-    }
-
     @GetMapping
     public ApiResponse<List<BangGiaDTO>> getAllBangGia(){
         List<BangGia> bangGiaList = bangGiaService.findAll();
@@ -113,8 +107,6 @@ public class QuanLyGiaController {
         BangGia bangGia = bangGiaService.mapToBangGia(bangGiaDTO);
         try{
             bangGia.setApDung(false);
-            bangGia.setThoiGianBatDau(convertToUTC(bangGia.getThoiGianBatDau()));
-            bangGia.setThoiGianKetThuc(convertToUTC(bangGia.getThoiGianKetThuc()));
             bangGia = bangGiaService.save(bangGia);
             if(bangGiaService.isExistsById(bangGia.getIdBangGia())){
                 BangGiaDTO bangGiaDTO2 = bangGiaService.mapToBangGiaDTO(bangGia);

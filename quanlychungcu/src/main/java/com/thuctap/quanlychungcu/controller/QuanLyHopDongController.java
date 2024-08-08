@@ -44,6 +44,7 @@ import com.thuctap.quanlychungcu.service.HopDongService;
 import com.thuctap.quanlychungcu.service.KhachHangService;
 import com.thuctap.quanlychungcu.service.ThanhToanService;
 import com.thuctap.quanlychungcu.service.YeuCauDichVuService;
+import com.thuctap.quanlychungcu.utils.TimeTool;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -82,22 +83,6 @@ public class QuanLyHopDongController {
     @Autowired
     AuthenticateService authenticateService;
 
-    public Timestamp getNow(){
-        Date date = new Date();
-        return new Timestamp(date.getTime());
-    }
-
-    public Timestamp convertToUTC(Timestamp time){
-        LocalDateTime localDateTime = time.toLocalDateTime();
-        localDateTime = localDateTime.minusHours(7);//trừ 7 tiếng
-        return Timestamp.valueOf(localDateTime);
-    }
-
-    public Timestamp plusDay(Timestamp time, int chuKy){
-        LocalDateTime localDateTime = time.toLocalDateTime();
-        localDateTime = localDateTime.plusDays(chuKy);
-        return Timestamp.valueOf(localDateTime);
-    }
 
     @GetMapping
     public ApiResponse<List<HopDongKhachHangDTO>> getAllHopDong(){
@@ -174,10 +159,10 @@ public class QuanLyHopDongController {
             System.out.println("/////////////////");
             System.out.println(hopDong.toString());
             System.out.println("/////////////////");
-            hopDong.setNgayLap(convertToUTC(hopDong.getNgayLap()));
-            hopDong.setNgayBatDau(convertToUTC(hopDong.getNgayBatDau()));
-            hopDong.setThoiHan(convertToUTC(hopDong.getThoiHan()));
-            hopDong.setThoiGianDong(convertToUTC(hopDong.getThoiGianDong()));
+            // hopDong.setNgayLap(convertToUTC(hopDong.getNgayLap()));
+            // hopDong.setNgayBatDau(convertToUTC(hopDong.getNgayBatDau()));
+            // hopDong.setThoiHan(convertToUTC(hopDong.getThoiHan()));
+            // hopDong.setThoiGianDong(convertToUTC(hopDong.getThoiGianDong()));
             hopDong.setTrangThai(true);
             hopDong.setChuKy(hopDong.getCanHo().getChuKy());
             hopDong.setChuKyDong(hopDong.getCanHo().getChuKyDong());
@@ -344,8 +329,6 @@ public class QuanLyHopDongController {
     public ApiResponse<String> insertHopDongDichVu(@RequestBody YeuCauDichVuDTO yeuCauDichVuDTO) {
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
-            yeuCauDichVu.setNgayYeuCau(convertToUTC(yeuCauDichVu.getNgayYeuCau()));
-            yeuCauDichVu.setThoiHan(convertToUTC(yeuCauDichVu.getThoiHan()));
             yeuCauDichVu.setTrangThai(true);
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
             yeuCauDichVu.setDuyet(0);
@@ -392,7 +375,7 @@ public class QuanLyHopDongController {
     //     }
     //     try{
     //         YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
-    //         yeuCauDichVu.setThoiHan(plusDay(yeuCauDichVu.getThoiHan(), yeuCauDichVu.getChuKy()));
+    //         yeuCauDichVu.setThoiHan(TimeTool.plusDay(yeuCauDichVu.getThoiHan(), yeuCauDichVu.getChuKy()));
     //         yeuCauDichVu=hopDongService.saveDichVu(yeuCauDichVu);
     //         return ApiResponse.<String>builder().code(200)
     //                 .result("Yêu cầu gia hạn thành công").build();
@@ -455,9 +438,14 @@ public class QuanLyHopDongController {
                 .result("Từ chối thành công yêu cầu từ chủ hợp đồng").build();
             }
             if(hopDong.getYeuCau()==0){//Trường hợp đăng ký
+                //Trường căn hộ đã cho thuê
+                if(hopDongService.checkActiveHopDong(hopDong.getCanHo().getIdCanHo())){
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Căn hộ "+String.valueOf(hopDong.getCanHo().getIdCanHo())+" đã cho thuê").build();
+                }
                 hopDong.setTrangThai(false);//Mở khóa hợp đồng
                 HoaDon hoaDon = new HoaDon();
-                hoaDon.setThoiGianTao(getNow());
+                hoaDon.setThoiGianTao(TimeTool.getNow());
                 hoaDon.setHopDong(hopDong);
                 hoaDon.setTongHoaDon(hopDong.getGiaTri());
                 hoaDon.setTrangThai(false);
@@ -474,7 +462,7 @@ public class QuanLyHopDongController {
                 .result("Đồng ý thành công đăng ký hợp đồng mới").build();
             }
             else if(hopDong.getYeuCau()==1){//yêu cầu gia hạn
-                hopDong.setThoiHan(plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
+                hopDong.setThoiHan(TimeTool.plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
                 hopDongService.save(hopDong);
                 return ApiResponse.<String>builder().code(200)
                 .result("Gia hạn thành công").build();
@@ -527,12 +515,16 @@ public class QuanLyHopDongController {
                 .result("Từ chối thành công yêu cầu từ chủ hợp đồng").build();
             }
             if(yeuCauDichVu.getYeuCau()==0){//Trường hợp đăng ký
+                if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Có hợp đồng dịch vụ đang hoạt động").build();
+                }
                 yeuCauDichVu.setTrangThai(false);//Mở khóa hợp đồng
                 HoaDon hoaDon = new HoaDon();
                 hoaDon.setYeuCauDichVu(yeuCauDichVu);
                 hoaDon.setTongHoaDon(yeuCauDichVu.getGiaTra());
                 hoaDon.setTrangThai(false);
-                hoaDon.setThoiGianTao(getNow());
+                hoaDon.setThoiGianTao(TimeTool.getNow());
                 hoaDon = hoaDonService.save(hoaDon);//Lưu hóa đơn lần đầu
                 if(!hoaDonService.isExistsById(hoaDon.getSoHoaDon())){
                     yeuCauDichVu.setTrangThai(true);
@@ -568,7 +560,7 @@ public class QuanLyHopDongController {
             
             List<HoaDon> hoaDonList = hoaDonService.findAll();
 
-            Timestamp now = getNow();
+            Timestamp now = TimeTool.getNow();
 
             List<String> notificationList= new ArrayList<>();
             if(hopDongDTOList.size()>0){
@@ -585,7 +577,7 @@ public class QuanLyHopDongController {
             
             if(hoaDonList.size()>0){
                 for(HoaDon x: hoaDonList){
-                    if(now.compareTo(plusDay(x.getThoiGianTao(), 7))>=0){
+                    if(now.compareTo(TimeTool.plusDay(x.getThoiGianTao(), 7))>=0){
                         String maKH = null;
                         HopDong hopDong =null;
                         

@@ -1,9 +1,7 @@
 package com.thuctap.quanlychungcu.service;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,8 +30,8 @@ import com.thuctap.quanlychungcu.repository.CTYeuCauDichVuRepository;
 import com.thuctap.quanlychungcu.repository.HoaDonRepository;
 import com.thuctap.quanlychungcu.repository.HopDongRepository;
 import com.thuctap.quanlychungcu.repository.YeuCauDichVuRepository;
+import com.thuctap.quanlychungcu.utils.TimeTool;
 
-import jakarta.transaction.Transactional;
 @Service
 public class HopDongService {
 
@@ -63,23 +61,6 @@ public class HopDongService {
 
     @Autowired
     BanQuanLyService banQuanLyService;
-
-    public Timestamp plusDay(Timestamp time, int day){
-        LocalDateTime localDateTime = time.toLocalDateTime();
-        localDateTime = localDateTime.plusDays(day);
-        return Timestamp.valueOf(localDateTime);
-    }
-
-    public Timestamp minusDay(Timestamp time, int day){
-        LocalDateTime localDateTime = time.toLocalDateTime();
-        localDateTime = localDateTime.minusDays(day);
-        return Timestamp.valueOf(localDateTime);
-    }
-
-    public Timestamp getNow(){
-        Date date = new Date();
-        return new Timestamp(date.getTime());
-    }
 
     public HopDongDTO mapToHopDongDTO(HopDong hopDong){
         if(hopDong==null)return null;
@@ -124,9 +105,9 @@ public class HopDongService {
             .duyet(hopDong.getDuyet())
             .banQuanLy(banQuanLyDTO)
             .build();
-        Timestamp thoiHanTruoc = minusDay(hopDong.getThoiHan(), 7);
-        Timestamp thoiHanSau = plusDay(hopDong.getThoiHan(), 1);
-        Timestamp now = getNow();
+        Timestamp thoiHanTruoc = TimeTool.minusDay(hopDong.getThoiHan(), 7);
+        Timestamp thoiHanSau = TimeTool.plusDay(hopDong.getThoiHan(), 1);
+        Timestamp now = TimeTool.getNow();
         if(now.after(thoiHanTruoc)&&now.before(thoiHanSau)){
             hopDongKhachHangDTO.setGiaHan(true);
         }
@@ -210,6 +191,16 @@ public class HopDongService {
         return chiTietHopDongRepository.save(chiTietHopDong);
     }
 
+    public Boolean checkActiveHopDong(long idCanHo){
+        List<HopDong> hopDongList = findAll();
+        for(HopDong x: hopDongList){
+            if(!x.getTrangThai()&&x.getCanHo().getIdCanHo()==idCanHo){
+                return true;
+            }
+        }
+        return false;
+    }
+
     //yêu cầu dịch vụ
 
     public HopDongDichVuKhachHangDTO mapToHopDongDichVuKhachHangDTO(YeuCauDichVu yeuCauDichVu){
@@ -231,9 +222,9 @@ public class HopDongService {
         .banQuanLy(banQuanLyDTO)
         .build();
 
-        Timestamp thoiHanTruoc = minusDay(yeuCauDichVu.getThoiHan(), 7);
-        Timestamp thoiHanSau = plusDay(yeuCauDichVu.getThoiHan(), 1);
-        Timestamp now = getNow();
+        Timestamp thoiHanTruoc = TimeTool.minusDay(yeuCauDichVu.getThoiHan(), 7);
+        Timestamp thoiHanSau = TimeTool.plusDay(yeuCauDichVu.getThoiHan(), 1);
+        Timestamp now = TimeTool.getNow();
         if(yeuCauDichVu.getChuKy()==0){
             hopDongDichVuKhachHangDTO.setGiaHan(false);
         }
@@ -349,9 +340,9 @@ public class HopDongService {
 
     public void huyDichVu(YeuCauDichVu yeuCauDichVu){
         Timestamp thoiHan = yeuCauDichVu.getThoiHan();
-        Timestamp thoiHanTruoc = minusDay(thoiHan, yeuCauDichVu.getChuKy());
-        Timestamp thoiHanTruoc7Ngay = minusDay(thoiHanTruoc,7);
-        Timestamp now = getNow();
+        Timestamp thoiHanTruoc = TimeTool.minusDay(thoiHan, yeuCauDichVu.getChuKy());
+        Timestamp thoiHanTruoc7Ngay = TimeTool.minusDay(thoiHanTruoc,7);
+        Timestamp now = TimeTool.getNow();
         if(now.compareTo(thoiHanTruoc)<=0){
             List<HoaDon> hoaDonList = hoaDonRepository.findAll();
             for(HoaDon x: hoaDonList){

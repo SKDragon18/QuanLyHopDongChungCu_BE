@@ -5,25 +5,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,19 +23,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.shaded.gson.Gson;
 import com.nimbusds.jose.shaded.gson.JsonObject;
 import com.thuctap.quanlychungcu.config.VNPayConfig;
 import com.thuctap.quanlychungcu.dto.ApiResponse;
 import com.thuctap.quanlychungcu.dto.CheckReponse;
 import com.thuctap.quanlychungcu.dto.HoaDonDTO;
-import com.thuctap.quanlychungcu.dto.HopDongDTO;
 import com.thuctap.quanlychungcu.dto.PaymentDTO;
 import com.thuctap.quanlychungcu.dto.ThanhToanDTO;
-import com.thuctap.quanlychungcu.dto.YeuCauDichVuDTO;
 import com.thuctap.quanlychungcu.model.HoaDon;
 import com.thuctap.quanlychungcu.service.HoaDonService;
 import com.thuctap.quanlychungcu.service.ThanhToanService;
+import com.thuctap.quanlychungcu.utils.TimeTool;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -61,10 +51,6 @@ public class QuanLyHoaDonController {
     HoaDonService hoaDonService;
     @Autowired
     ThanhToanService thanhToanService;
-    public Timestamp getNow(){
-        Date date = new Date();
-        return new Timestamp(date.getTime());
-    }
 
     @GetMapping
     public ApiResponse<List<HoaDonDTO>> getAllHoaDon(){
@@ -141,7 +127,7 @@ public class QuanLyHoaDonController {
                 try{
                     HoaDon hoaDon = thanhToanDTO.getHoaDon();
                     hoaDon.setTrangThai(true);
-                    hoaDon.setThoiGianDong(getNow());
+                    hoaDon.setThoiGianDong(TimeTool.getNow());
                     hoaDon=hoaDonService.save(hoaDon);
                     thanhToanService.removeThanhToan(vnp_TxnRef);
                     return new RedirectView("http://localhost:5173/success");
