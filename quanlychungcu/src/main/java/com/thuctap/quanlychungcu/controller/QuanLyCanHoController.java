@@ -111,11 +111,10 @@ public class QuanLyCanHoController {
         try{
             CanHo canHo = canHoService.findById(idCanHo);
             String result = hinhAnhService.deleteAllHinhAnhCanHo(canHo);
-            if(!result.contains("thành công")){
-                System.out.println(result);
-            }
+            System.out.println(result);
             for(MultipartFile image: images){
-                hinhAnhService.downloadHinhAnh(image, null, canHo);
+                result=hinhAnhService.downloadHinhAnh(image, null, canHo);
+                System.out.println(result);
             }
             return ApiResponse.<String>builder().code(200)
             .result("Đổi thành công").build();

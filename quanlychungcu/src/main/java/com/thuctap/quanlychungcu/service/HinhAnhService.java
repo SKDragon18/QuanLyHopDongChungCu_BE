@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ import com.thuctap.quanlychungcu.model.TaiKhoan;
 import com.thuctap.quanlychungcu.repository.CanHoRepository;
 import com.thuctap.quanlychungcu.repository.HinhAnhRepository;
 
+import jakarta.servlet.ServletContext;
 import jakarta.transaction.Transactional;
 @Service
 public class HinhAnhService {
@@ -25,10 +27,14 @@ public class HinhAnhService {
     @Autowired
     CanHoRepository canHoRepository;
 
-    private final String IMAGE_PATH = "D:\\SpringBoostWorkspace\\QuanLyHopDongDichVuChungCu\\quanlychungcu\\src\\main\\java\\com\\thuctap\\quanlychungcu\\image/";
+    @Autowired
+    ServletContext servletContext;
+    
+    private final String IMAGE_PATH = "D:\\SpringBoostWorkspace\\QuanLyHopDong\\QuanLyHopDongChungCu_BE\\quanlychungcu\\src\\main\\resources\\static\\images/";
 
     @Transactional
     public String downloadHinhAnh(MultipartFile file, TaiKhoan taiKhoan, CanHo canHo) throws IllegalStateException, IOException{
+        
         String uuid = UUID.randomUUID().toString();
         String filePath = IMAGE_PATH+uuid+".jpg";
         
