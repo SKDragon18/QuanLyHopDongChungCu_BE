@@ -103,7 +103,10 @@ public class QuanLyHoaDonController {
             .message("Hóa đơn đã thanh toán").build();
         }
         try{
+            
             ThanhToanDTO thanhToanDTO = thanhToanService.createVNPPayment(req, hoaDon);
+            // System.out.println("///////");
+            // System.out.println(thanhToanDTO.toString());
             return ApiResponse.<ThanhToanDTO>builder().code(200)
             .result(thanhToanDTO).build();
         }
@@ -125,7 +128,12 @@ public class QuanLyHoaDonController {
                 System.out.println("Size: ");
                 System.out.println(thanhToanService.getSizeGiaoDich());
                 try{
-                    HoaDon hoaDon = thanhToanDTO.getHoaDon();
+                    HoaDon hoaDon = hoaDonService.findById(thanhToanDTO.getHoaDon().getSoHoaDon());
+                    if(hoaDon==null){
+                        System.out.println("Lỗi thanh toán: Mất thông tin hóa đơn");
+                        thanhToanService.removeThanhToan(vnp_TxnRef);
+                        return new RedirectView("http://localhost:5173/fail");
+                    }
                     hoaDon.setTrangThai(true);
                     hoaDon.setThoiGianDong(TimeTool.getNow());
                     hoaDon=hoaDonService.save(hoaDon);

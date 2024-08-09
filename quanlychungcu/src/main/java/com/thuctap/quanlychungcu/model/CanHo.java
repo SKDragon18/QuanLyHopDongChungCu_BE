@@ -24,7 +24,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"hinhAnhList"})
 public class CanHo {
     @Id
     @Column(name = "IDCANHO",nullable = false)

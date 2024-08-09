@@ -462,12 +462,17 @@ public class QuanLyHopDongController {
                 .result("Đồng ý thành công đăng ký hợp đồng mới").build();
             }
             else if(hopDong.getYeuCau()==1){//yêu cầu gia hạn
+                //Trường căn hộ đã cho thuê
+                if(hopDongService.checkActiveHopDong(hopDong.getCanHo().getIdCanHo())){
+                    return ApiResponse.<String>builder().code(400)
+                    .message("Căn hộ "+String.valueOf(hopDong.getCanHo().getIdCanHo())+" đã cho thuê").build();
+                }
                 hopDong.setThoiHan(TimeTool.plusDay(hopDong.getThoiHan(), hopDong.getChuKy()));
                 hopDongService.save(hopDong);
                 return ApiResponse.<String>builder().code(200)
                 .result("Gia hạn thành công").build();
             }
-            else if(hopDong.getYeuCau()==2){
+            else if(hopDong.getYeuCau()==2){//Yêu cầu hủy
                 hopDong.setTrangThai(true);
                 hopDongService.save(hopDong);
                 return ApiResponse.<String>builder().code(200)
@@ -622,7 +627,7 @@ public class QuanLyHopDongController {
             List<HopDongKhachHangDTO> hopDongDTOList = hopDongList.stream()
             .map(hopDong -> hopDongService.mapToHopDongKhachHangDTO(hopDong)).toList();
             List<HoaDon> hoaDonList = hoaDonService.findAll();
-
+            //Nhắc nợ 7 ngày
             List<String> notificationList= new ArrayList<>();
             if(hopDongDTOList.size()>0){
                 for(HopDongKhachHangDTO x: hopDongDTOList){

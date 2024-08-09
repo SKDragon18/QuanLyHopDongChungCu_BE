@@ -125,8 +125,9 @@ public class ThanhToanService {
             String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.secretKey, hashData.toString());
             queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
             String paymentUrl = VNPayConfig.vnp_PayUrl + "?" + queryUrl;
+            HoaDon hoaDonLuu = HoaDon.builder().soHoaDon(hoaDon.getSoHoaDon()).build();
             ThanhToanDTO thanhToanDTO = ThanhToanDTO.builder()
-            .hoaDon(hoaDon)
+            .hoaDon(hoaDonLuu)
             .vnp_CreateDate(vnp_CreateDate).vnp_TxnRef(vnp_TxnRef).url(paymentUrl).build();
             cacheThanhToan(thanhToanDTO);
             return thanhToanDTO;
