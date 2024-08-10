@@ -22,13 +22,10 @@ public class HoaDonService {
     @Autowired
     HopDongService hopDongService;
 
-    @Autowired
-    YeuCauDichVuService yeuCauDichVuService;
-
     public HoaDonDTO mapToHoaDonDTO(HoaDon hoaDon){
         if(hoaDon==null)return null;
         HopDongDTO hopDongDTO = hopDongService.mapToHopDongDTO(hoaDon.getHopDong());;
-        YeuCauDichVuDTO yeuCauDichVuDTO = yeuCauDichVuService.mapToYeuCauDichVuDTO(hoaDon.getYeuCauDichVu());
+        YeuCauDichVuDTO yeuCauDichVuDTO = hopDongService.mapToYeuCauDichVuDTO(hoaDon.getYeuCauDichVu());
 
         return HoaDonDTO.builder()
             .soHoaDon(hoaDon.getSoHoaDon())
@@ -51,7 +48,7 @@ public class HoaDonService {
         
         YeuCauDichVu yeuCauDichVu = null;
         if(hoaDonDTO.getYeuCauDichVu()!=null){
-            yeuCauDichVu = yeuCauDichVuService.findById(hoaDonDTO.getYeuCauDichVu().getIdYeuCauDichVu());
+            yeuCauDichVu = hopDongService.findDichVuById(hoaDonDTO.getYeuCauDichVu().getIdYeuCauDichVu());
         }
         
         return HoaDon.builder()

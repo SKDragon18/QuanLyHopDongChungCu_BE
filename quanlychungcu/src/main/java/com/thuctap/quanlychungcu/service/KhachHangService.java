@@ -23,7 +23,7 @@ public class KhachHangService {
             .ten(khachHang.getTen())
             .sdt(khachHang.getSdt())
             .email(khachHang.getEmail())
-            .cmnd(khachHang.getCmnd())
+            .ngaySinh(khachHang.getNgaySinh())
             .build();
     }
 
@@ -35,7 +35,7 @@ public class KhachHangService {
             .ten(khachHangDTO.getTen())
             .sdt(khachHangDTO.getSdt())
             .email(khachHangDTO.getEmail())
-            .cmnd(khachHangDTO.getCmnd())
+            .ngaySinh(khachHangDTO.getNgaySinh())
             .build();
     }
 

@@ -78,11 +78,12 @@ public class QuanLyHoaDonController {
         List<HoaDon> hoaDonList = hoaDonService.findAll();
         List<HoaDonDTO> hoaDonDTOList = new ArrayList<>();
         for(HoaDon hoaDon:hoaDonList){
-            if(hoaDon.getHopDong()!=null&&hoaDon.getHopDong().getKhachHang().getMaKhachHang().equals(id)){
+            if(hoaDon.getHopDong()!=null&&hoaDon.getHopDong()
+            .getKhachHang().getMaKhachHang().equals(id)){
                 hoaDonDTOList.add(hoaDonService.mapToHoaDonDTO(hoaDon));
             }
             else if(hoaDon.getYeuCauDichVu()!=null&&hoaDon.getYeuCauDichVu()
-            .getHopDong().getKhachHang().getMaKhachHang().equals(id)){
+            .getKhachHang().getMaKhachHang().equals(id)){
                 hoaDonDTOList.add(hoaDonService.mapToHoaDonDTO(hoaDon));
             }
         }

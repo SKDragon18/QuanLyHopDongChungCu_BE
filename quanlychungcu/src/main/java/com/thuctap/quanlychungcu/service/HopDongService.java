@@ -205,12 +205,12 @@ public class HopDongService {
 
     public HopDongDichVuKhachHangDTO mapToHopDongDichVuKhachHangDTO(YeuCauDichVu yeuCauDichVu){
         if(yeuCauDichVu==null)return null;
-        HopDongDTO hopDongDTO = mapToHopDongDTO(yeuCauDichVu.getHopDong());
+        KhachHangDTO khachHangDTO = khachHangService.mapToKhachHangDTO(yeuCauDichVu.getKhachHang());
         DichVuDTO dichVuDTO = dichVuService.mapToDichVuDTO(yeuCauDichVu.getDichVu());
         BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(yeuCauDichVu.getBanQuanLy());
         HopDongDichVuKhachHangDTO hopDongDichVuKhachHangDTO = HopDongDichVuKhachHangDTO.builder()
         .idYeuCauDichVu(yeuCauDichVu.getIdYeuCauDichVu())
-        .hopDong(hopDongDTO)
+        .khachHang(khachHangDTO)
         .dichVu(dichVuDTO)
         .giaTra(yeuCauDichVu.getGiaTra())
         .ngayYeuCau(yeuCauDichVu.getNgayYeuCau())
@@ -239,12 +239,12 @@ public class HopDongService {
 
     public YeuCauDichVuDTO mapToYeuCauDichVuDTO(YeuCauDichVu yeuCauDichVu){
         if(yeuCauDichVu==null)return null;
-        HopDongDTO hopDongDTO = mapToHopDongDTO(yeuCauDichVu.getHopDong());
+        KhachHangDTO khachHangDTO = khachHangService.mapToKhachHangDTO(yeuCauDichVu.getKhachHang());
         DichVuDTO dichVuDTO = dichVuService.mapToDichVuDTO(yeuCauDichVu.getDichVu());
         BanQuanLyDTO banQuanLyDTO = banQuanLyService.mapToBanQuanLyDTO(yeuCauDichVu.getBanQuanLy());
         return YeuCauDichVuDTO.builder()
             .idYeuCauDichVu(yeuCauDichVu.getIdYeuCauDichVu())
-            .hopDong(hopDongDTO)
+            .khachHang(khachHangDTO)
             .dichVu(dichVuDTO)
             .giaTra(yeuCauDichVu.getGiaTra())
             .ngayYeuCau(yeuCauDichVu.getNgayYeuCau())
@@ -259,9 +259,9 @@ public class HopDongService {
 
     public YeuCauDichVu mapToYeuCauDichVu(YeuCauDichVuDTO yeuCauDichVuDTO){
         if(yeuCauDichVuDTO==null)return null;
-        HopDong hopDong = null;
-        if(yeuCauDichVuDTO.getHopDong()!=null){
-            hopDong=findById(yeuCauDichVuDTO.getHopDong().getIdHopDong());
+        KhachHang khachHang = null;
+        if(yeuCauDichVuDTO.getKhachHang()!=null){
+            khachHang = khachHangService.findById(yeuCauDichVuDTO.getKhachHang().getMaKhachHang());
         } 
         
         DichVu dichVu = null;
@@ -276,7 +276,7 @@ public class HopDongService {
 
         return YeuCauDichVu.builder()
         .idYeuCauDichVu(yeuCauDichVuDTO.getIdYeuCauDichVu())
-        .hopDong(hopDong)
+        .khachHang(khachHang)
         .dichVu(dichVu)
         .giaTra(yeuCauDichVuDTO.getGiaTra())
         .ngayYeuCau(yeuCauDichVuDTO.getNgayYeuCau())
@@ -298,7 +298,7 @@ public class HopDongService {
         List<YeuCauDichVu> yeuCauDichVuList= yeuCauDichVuRepository.findAll();
         List<YeuCauDichVu> yeuCauDichVuKhachHangList = new ArrayList<>();
         for(YeuCauDichVu x: yeuCauDichVuList){
-            if(x.getHopDong().getKhachHang().getMaKhachHang().equals(id)){
+            if(x.getKhachHang().getMaKhachHang().equals(id)){
                 yeuCauDichVuKhachHangList.add(x);
             }
         }
@@ -317,17 +317,17 @@ public class HopDongService {
     public boolean isExistsDichVuById(long id){
         return yeuCauDichVuRepository.existsById(id);
     }
-    public boolean isExistsByHopDongDichVu(HopDong hopDong, DichVu dichVu){
-        List<YeuCauDichVu> list = findAllDichVu();
-        for(YeuCauDichVu x: list){
-            if(!x.getTrangThai()
-            &&x.getHopDong().getCanHo().getIdCanHo()==hopDong.getCanHo().getIdCanHo()
-            &&x.getDichVu().equals(dichVu)){
-                return true;
-            }
-        }
-        return false;
-    }
+    // public boolean isExistsByHopDongDichVu(HopDong hopDong, DichVu dichVu){
+    //     List<YeuCauDichVu> list = findAllDichVu();
+    //     for(YeuCauDichVu x: list){
+    //         if(!x.getTrangThai()
+    //         &&x.getHopDong().getCanHo().getIdCanHo()==hopDong.getCanHo().getIdCanHo()
+    //         &&x.getDichVu().equals(dichVu)){
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
 
     public YeuCauDichVu saveDichVu(YeuCauDichVu yeuCauDichVu){

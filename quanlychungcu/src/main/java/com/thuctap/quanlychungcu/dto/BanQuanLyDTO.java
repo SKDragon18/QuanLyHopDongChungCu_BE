@@ -16,6 +16,5 @@ public class BanQuanLyDTO {
     private String sdt;
     private String email;
     private String diaChi;
-    private String cmnd;
     private Boolean nghi;
 }

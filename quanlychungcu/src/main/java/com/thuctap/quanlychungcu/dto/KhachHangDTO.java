@@ -1,5 +1,7 @@
 package com.thuctap.quanlychungcu.dto;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,5 +17,5 @@ public class KhachHangDTO {
     private String ten;
     private String sdt;
     private String email;
-    private String cmnd;
+    private LocalDate ngaySinh;
 }

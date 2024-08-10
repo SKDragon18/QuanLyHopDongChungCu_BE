@@ -30,8 +30,8 @@ public class YeuCauDichVu {
     private long idYeuCauDichVu;
 
     @ManyToOne
-    @JoinColumn(name = "IDHOPDONG")
-    private HopDong hopDong;
+    @JoinColumn(name = "MAKHACHHANG")
+    private KhachHang khachHang;
 
     @ManyToOne
     @JoinColumn(name = "IDDICHVU")

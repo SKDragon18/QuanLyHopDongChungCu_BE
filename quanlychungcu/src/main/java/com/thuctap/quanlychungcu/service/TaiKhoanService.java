@@ -142,7 +142,7 @@ public class TaiKhoanService {
         .maKhachHang(dangKyDTO.getTenDangNhap())
         .ho(dangKyDTO.getHo())
         .ten(dangKyDTO.getTen())
-        .cmnd(dangKyDTO.getCmnd())
+        .ngaySinh(dangKyDTO.getNgaySinh())
         .email(dangKyDTO.getEmail())
         .sdt(dangKyDTO.getSdt())
         .build();
@@ -168,7 +168,6 @@ public class TaiKhoanService {
         .ma(maMoi)
         .ho(dangKyDTO.getHo())
         .ten(dangKyDTO.getTen())
-        .cmnd(dangKyDTO.getCmnd())
         .email(dangKyDTO.getEmail())
         .sdt(dangKyDTO.getSdt())
         .diaChi(dangKyDTO.getDiaChi())

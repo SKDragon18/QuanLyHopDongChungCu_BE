@@ -1,4 +1,6 @@
 package com.thuctap.quanlychungcu.model;
+import java.time.LocalDate;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,6 +36,6 @@ public class KhachHang {
     @Column(name="EMAIL", nullable = false, length = 128)
     private String email;
 
-    @Column(name="CMND",nullable = true, length = 12)
-    private String cmnd;
+    @Column(name="NGAYSINH",nullable = true, length = 12)
+    private LocalDate ngaySinh;
 }

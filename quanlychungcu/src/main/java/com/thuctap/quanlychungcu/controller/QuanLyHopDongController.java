@@ -43,7 +43,6 @@ import com.thuctap.quanlychungcu.service.HoaDonService;
 import com.thuctap.quanlychungcu.service.HopDongService;
 import com.thuctap.quanlychungcu.service.KhachHangService;
 import com.thuctap.quanlychungcu.service.ThanhToanService;
-import com.thuctap.quanlychungcu.service.YeuCauDichVuService;
 import com.thuctap.quanlychungcu.utils.TimeTool;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,9 +63,6 @@ public class QuanLyHopDongController {
 
     @Autowired
     BanQuanLyService banQuanLyService;
-
-    @Autowired
-    YeuCauDichVuService yeuCauDichVuService;
 
     @Autowired
     HoaDonService hoaDonService;
@@ -253,7 +249,7 @@ public class QuanLyHopDongController {
 
     @GetMapping("/dichvu")
     public ApiResponse<List<HopDongDichVuKhachHangDTO>> getAllHopDongDichVu(){
-        List<YeuCauDichVu> yeuCauDichVuList = yeuCauDichVuService.findAll();
+        List<YeuCauDichVu> yeuCauDichVuList = hopDongService.findAllDichVu();
         List<HopDongDichVuKhachHangDTO> hopDongDTOList = yeuCauDichVuList.stream()
         .map(yeuCauDichVu -> hopDongService.mapToHopDongDichVuKhachHangDTO(yeuCauDichVu)).toList();
         return ApiResponse.<List<HopDongDichVuKhachHangDTO>>builder().code(200)
@@ -263,12 +259,12 @@ public class QuanLyHopDongController {
     //Hợp đồng dịch vụ
     @GetMapping("/dichvu/khachhang/{id}")
     public ApiResponse<HopDongDichVuKhachHangDTO> getHopDongDichVuKhachHang(@PathVariable("id") long id){
-        if(!yeuCauDichVuService.isExistsById(id)){
+        if(!hopDongService.isExistsDichVuById(id)){
             return ApiResponse.<HopDongDichVuKhachHangDTO>builder().code(400)
                     .message("Không tồn tại hợp đồng").build();
         }
         try{
-            YeuCauDichVu yeuCauDichVu = yeuCauDichVuService.findById(id);
+            YeuCauDichVu yeuCauDichVu = hopDongService.findDichVuById(id);
             HopDongDichVuKhachHangDTO hopDongDTO = hopDongService.mapToHopDongDichVuKhachHangDTO(yeuCauDichVu);
             List<DieuKhoanDTO> dieuKhoanList = new ArrayList<>();
             for(CTYeuCauDichVu x: yeuCauDichVu.getChiTietYeuCauDichVuList()){
@@ -310,12 +306,12 @@ public class QuanLyHopDongController {
         try{
             YeuCauDichVu yeuCauDichVu = hopDongService.mapToYeuCauDichVu(yeuCauDichVuDTO);
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
-            if(yeuCauDichVu.getChuKy()!=0){
-                if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
-                    return ApiResponse.<String>builder().code(400)
-                    .message("Có hợp đồng dịch vụ đang hoạt động").build();
-                }
-            }
+            // if(yeuCauDichVu.getChuKy()!=0){
+            //     if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+            //         return ApiResponse.<String>builder().code(400)
+            //         .message("Có hợp đồng dịch vụ đang hoạt động").build();
+            //     }
+            // }
             return ApiResponse.<String>builder().code(200)
             .result("Hợp lệ").build();
         }
@@ -333,14 +329,14 @@ public class QuanLyHopDongController {
             yeuCauDichVu.setChuKy(yeuCauDichVu.getDichVu().getChuKy());
             yeuCauDichVu.setDuyet(0);
             yeuCauDichVu.setYeuCau(0);
-            if(yeuCauDichVu.getChuKy()!=0){
-                if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
-                    System.out.println(yeuCauDichVu.getHopDong().getIdHopDong());
-                    System.out.println(yeuCauDichVu.getDichVu().getIdDichVu());
-                    return ApiResponse.<String>builder().code(400)
-                    .message("Có hợp đồng dịch vụ đang hoạt động").build();
-                }
-            }
+            // if(yeuCauDichVu.getChuKy()!=0){
+            //     if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+            //         System.out.println(yeuCauDichVu.getHopDong().getIdHopDong());
+            //         System.out.println(yeuCauDichVu.getDichVu().getIdDichVu());
+            //         return ApiResponse.<String>builder().code(400)
+            //         .message("Có hợp đồng dịch vụ đang hoạt động").build();
+            //     }
+            // }
             yeuCauDichVu = hopDongService.saveDichVu(yeuCauDichVu);
             DichVu dichVu = yeuCauDichVu.getDichVu();
             List<CTDKDichVu> chiTietDieuKhoanDichVuList = dichVu.getChiTietDieuKhoanDichVuList();
@@ -520,10 +516,10 @@ public class QuanLyHopDongController {
                 .result("Từ chối thành công yêu cầu từ chủ hợp đồng").build();
             }
             if(yeuCauDichVu.getYeuCau()==0){//Trường hợp đăng ký
-                if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
-                    return ApiResponse.<String>builder().code(400)
-                    .message("Có hợp đồng dịch vụ đang hoạt động").build();
-                }
+                // if(hopDongService.isExistsByHopDongDichVu(yeuCauDichVu.getHopDong(), yeuCauDichVu.getDichVu())){
+                //     return ApiResponse.<String>builder().code(400)
+                //     .message("Có hợp đồng dịch vụ đang hoạt động").build();
+                // }
                 yeuCauDichVu.setTrangThai(false);//Mở khóa hợp đồng
                 HoaDon hoaDon = new HoaDon();
                 hoaDon.setYeuCauDichVu(yeuCauDichVu);
@@ -584,17 +580,17 @@ public class QuanLyHopDongController {
                 for(HoaDon x: hoaDonList){
                     if(now.compareTo(TimeTool.plusDay(x.getThoiGianTao(), 7))>=0){
                         String maKH = null;
-                        HopDong hopDong =null;
+                        KhachHang khachHang = null;
                         
                         if(x.getHopDong()!=null){
-                            hopDong = x.getHopDong();
+                            khachHang = x.getHopDong().getKhachHang();
                         }
                         else if(x.getYeuCauDichVu()!=null){
-                            hopDong = x.getYeuCauDichVu().getHopDong();
+                            khachHang = x.getYeuCauDichVu().getKhachHang();
                         }
 
-                        if(hopDong!=null){
-                            maKH = hopDong.getKhachHang().getTen()+"-"+hopDong.getKhachHang().getMaKhachHang();
+                        if(khachHang!=null){
+                            maKH = khachHang.getTen()+"-"+khachHang.getMaKhachHang();
                         }
                         else{
                             maKH="NaN";
@@ -641,15 +637,15 @@ public class QuanLyHopDongController {
             if(hoaDonList.size()>0){
                 for(HoaDon x: hoaDonList){
                     if(x.getTrangThai())continue;//TH đã thanh toán
-                    HopDong hopDong = null;
+                    KhachHang khachHang = null;
                     if(x.getHopDong()!=null){
-                        hopDong = x.getHopDong();
+                        khachHang = x.getHopDong().getKhachHang();
                     }
                     if(x.getYeuCauDichVu()!=null){
-                        hopDong = x.getYeuCauDichVu().getHopDong();
+                        khachHang = x.getYeuCauDichVu().getKhachHang();
                     }
-                    if(hopDong!=null){
-                        if(hopDong.getKhachHang().getMaKhachHang().equals(id)){
+                    if(khachHang!=null){
+                        if(khachHang.getMaKhachHang().equals(id)){
                             String message = "HÓA ĐƠN "+ String.valueOf(x.getSoHoaDon())+" CHƯA THANH TOÁN";
                             notificationList.add(message);
                         }

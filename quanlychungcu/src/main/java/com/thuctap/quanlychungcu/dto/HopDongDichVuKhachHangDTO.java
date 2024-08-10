@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class HopDongDichVuKhachHangDTO {
     private long idYeuCauDichVu;
-    private HopDongDTO hopDong;
+    private KhachHangDTO khachHang;
     private DichVuDTO dichVu;
     private BanQuanLyDTO banQuanLy;
     private BigDecimal giaTra;

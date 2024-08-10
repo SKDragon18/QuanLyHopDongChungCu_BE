@@ -35,9 +35,6 @@ public class BanQuanLy {
     @Column(name="DIACHI",nullable = true,length = 200)
     private String diaChi;
 
-    @Column(name="CMND",nullable = false, length = 12)
-    private String cmnd;
-
     @Column(name="NGHI",nullable = false)
     private Boolean nghi;
 

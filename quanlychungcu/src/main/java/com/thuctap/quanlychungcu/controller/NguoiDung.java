@@ -320,4 +320,20 @@ public class NguoiDung {
         }
     }
 
+    @GetMapping("/hinhanh/{id}")
+    public ApiResponse<byte[]> getAvatar(@PathVariable("id") String id){
+        TaiKhoan taiKhoan = taiKhoanService.findById(id);
+        if(taiKhoan==null){
+            return ApiResponse.<byte[]>builder().code(404)
+            .message("Không tìm thấy thông tin").build();
+        }
+        TaiKhoanDTO taiKhoanDTO = taiKhoanService.mapToTaiKhoanDTO(taiKhoan, true);
+        if(taiKhoanDTO.getHinhAnhList().size()==0){
+            return ApiResponse.<byte[]>builder().code(404)
+            .message("Không tìm thấy hình ảnh").build();
+        }
+        return ApiResponse.<byte[]>builder().code(200)
+            .result(taiKhoanDTO.getHinhAnhList().get(0)).build();
+    }
+
 }

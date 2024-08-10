@@ -24,7 +24,6 @@ public class BanQuanLyService {
             .sdt(banQuanLy.getSdt())
             .email(banQuanLy.getEmail())
             .diaChi(banQuanLy.getDiaChi())
-            .cmnd(banQuanLy.getCmnd())
             .nghi(banQuanLy.getNghi())
             .build();
     }
@@ -38,7 +37,6 @@ public class BanQuanLyService {
             .sdt(banQuanLyDTO.getSdt())
             .email(banQuanLyDTO.getEmail())
             .diaChi(banQuanLyDTO.getDiaChi())
-            .cmnd(banQuanLyDTO.getCmnd())
             .nghi(banQuanLyDTO.getNghi())
             .build();
     }
